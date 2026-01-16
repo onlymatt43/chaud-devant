@@ -44,21 +44,25 @@
                     return;
                 }
 
-                videos.forEach(video => {
-                    const card = document.createElement('div');
-                    card.className = 'bg-gray-800 rounded-2xl overflow-hidden shadow-2xl border border-gray-700 hover:border-orange-500 transition-all duration-300';
-                    
+                        // Conteneur de la vidéo avec gestion du hover
                     card.innerHTML = `
-                        <div class="relative group">
-                            <iframe 
-                                src="${video.url}" 
-                                class="w-full aspect-video" 
-                                loading="lazy" 
-                                style="border: none;" 
-                                allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture;" 
-                                allowfullscreen="true">
-                            </iframe>
+                        <div class="relative group aspect-video bg-black cursor-pointer overflow-hidden rounded-t-2xl">
+                            <!-- Overlay d'attente (Play button) -->
+                            <div class="absolute inset-0 flex items-center justify-center z-10 group-hover:opacity-0 transition-opacity duration-300 bg-gray-800">
+                                <div class="bg-orange-500 rounded-full p-4 shadow-xl shadow-orange-500/20 transform group-hover:scale-110 transition duration-300">
+                                    <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.333-5.89a1.5 1.5 0 000-2.538L6.3 2.841z"></path></svg>
+                                </div>
+                                <div class="absolute bottom-4 left-4 text-xs font-bold text-orange-400 uppercase tracking-widest opacity-70">
+                                    Survoler pour lire
+                                </div>
+                            </div>
+                            
+                            <!-- Conteneur d'injection de l'iframe -->
+                            <div class="video-player absolute inset-0 w-full h-full opacity-0 group-hover:opacity-100 transition-opacity duration-500" 
+                                 data-url="${video.url}?autoplay=true&muted=true&loop=true">
+                            </div>
                         </div>
+
                         <div class="p-5">
                             <div class="flex justify-between items-start mb-2">
                                 <h3 class="font-bold text-lg text-gray-100 uppercase tracking-wide truncate pr-4" title="${video.id}">
@@ -68,13 +72,28 @@
                                     ${new Date(video.updated_at).toLocaleDateString('fr-FR')}
                                 </span>
                             </div>
-                            <div class="mt-4">
-                                <a href="${video.url}" target="_blank" class="block text-center text-sm font-semibold bg-orange-500 hover:bg-orange-600 text-white py-2 px-4 rounded-xl transition">
-                                    Ouvrir dans le lecteur
+                            <div class="mt-4 flex gap-3">
+                                <a href="${video.url}" target="_blank" class="flex-1 text-center text-xs font-bold uppercase tracking-wider bg-gray-700 hover:bg-orange-500 text-gray-300 hover:text-white py-3 rounded-xl transition duration-300">
+                                    Plein écran
                                 </a>
                             </div>
                         </div>
                     `;
+
+                    // Gestion des événements Hover pour charger/décharger la vidéo
+                    card.querySelector('.group').addEventListener('mouseenter', function() {
+                        const player = this.querySelector('.video-player');
+                        const url = player.getAttribute('data-url');
+                        if (!player.innerHTML) {
+                            player.innerHTML = `<iframe src="${url}" class="w-full h-full" style="border:none;" allow="autoplay"></iframe>`;
+                        }
+                    });
+
+                    card.querySelector('.group').addEventListener('mouseleave', function() {
+                        const player = this.querySelector('.video-player');
+                        player.innerHTML = ''; // Arrête la vidéo et libère la mémoire
+                    });
+
                     gallery.appendChild(card);
                 });
             } catch (error) {
