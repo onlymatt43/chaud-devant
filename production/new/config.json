@@ -1,0 +1,23 @@
+{
+  "languages": [
+    "fr",
+    "en"
+  ],
+  "captions": {
+    "enabled": true
+  },
+  "branding": {
+    "enabled": true,
+    "outro": "templates/outro.mp4"
+  },
+  "formats": {
+    "16x9": true,
+    "9x16": true,
+    "1x1": false
+  },
+  "id": "new",
+  "bunny_stream": {
+    "library_id": "581630",
+    "access_key": "7b43d33b-576e-4890-8fb1dae4d73d-9663-4f27"
+  }
+}

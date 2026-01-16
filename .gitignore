@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.env
+
+# Project specific
+logs/
+production/*/output/
+production/*/status.json
+video_master.mp4
+*.xlsx
+*.csv
+
+# OS
+.DS_Store
