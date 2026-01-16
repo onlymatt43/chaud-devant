@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
-import json, subprocess, datetime, time, requests
+import json, subprocess, datetime, time, requests, os
 from pathlib import Path
 import pandas as pd
+from dotenv import load_dotenv
+
+load_dotenv() # Charge les variables de .env
 
 def load_json(p, d): return json.loads(p.read_text()) if p.exists() else d
 def save_json(p, d): p.write_text(json.dumps(d, indent=2, ensure_ascii=False))
@@ -79,6 +82,15 @@ def process(folder):
     f=Path(folder)
     cfg=load_json(f/"config.json",{})
     st=load_json(f/"status.json",{})
+
+    # Injection des secrets depuis l'environnement
+    bunny_stream_cfg = cfg.get("bunny_stream", {})
+    if os.getenv("BUNNY_LIBRARY_ID"):
+        bunny_stream_cfg["library_id"] = os.getenv("BUNNY_LIBRARY_ID")
+    if os.getenv("BUNNY_ACCESS_KEY"):
+        bunny_stream_cfg["access_key"] = os.getenv("BUNNY_ACCESS_KEY")
+    if bunny_stream_cfg: cfg["bunny_stream"] = bunny_stream_cfg
+
     (f/"logs").mkdir(exist_ok=True)
     out=f/"output"; out.mkdir(exist_ok=True)
     (out/"captions").mkdir(exist_ok=True)
