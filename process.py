@@ -78,6 +78,14 @@ def run(cmd, log, step, retries=0, backoff=[5,30,120]):
             time.sleep(backoff[min(a,len(backoff)-1)])
             a+=1
 
+def update_global_showcase(new_inv, root_path):
+    showcase_path = root_path / "showcase.json"
+    showcase = load_json(showcase_path, [])
+    # Remove existing entry with same ID and add new one at the top
+    showcase = [item for item in showcase if item.get("id") != new_inv["id"]]
+    showcase.insert(0, new_inv)
+    save_json(showcase_path, showcase)
+
 def process(folder):
     f=Path(folder)
     cfg=load_json(f/"config.json",{})
@@ -164,6 +172,9 @@ def process(folder):
     st["last_update"]=inv["updated_at"]
     save_json(f/"status.json",st)
     
+    # Update central showcase
+    update_global_showcase(inv, Path(__file__).parent)
+
     if st.get("bunny_urls"):
         print("\n--- Bunny.net URLs ---")
         for k, url in st["bunny_urls"].items():

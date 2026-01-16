@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vitrine Vidéo - Chaud Devant</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .aspect-video-9-16 { aspect-ratio: 9 / 16; }
+        .aspect-video-16-9 { aspect-ratio: 16 / 9; }
+    </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen">
+    <nav class="p-6 bg-gray-800 border-b border-gray-700 mb-8">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-bold tracking-tight text-orange-500 italic">CHAUD DEVANT !</h1>
+            <span class="text-gray-400 text-sm">Vitrine Vidéo Automatique</span>
+        </div>
+    </nav>
+
+    <main class="container mx-auto px-4 pb-20">
+        <div id="gallery" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <!-- Les vidéos seront injectées ici -->
+            <div class="animate-pulse flex flex-col space-y-4">
+                <div class="bg-gray-800 rounded-xl aspect-video"></div>
+                <div class="h-4 bg-gray-800 rounded w-3/4"></div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        async function loadShowcase() {
+            try {
+                const response = await fetch('showcase.json');
+                const videos = await response.json();
+                const gallery = document.getElementById('gallery');
+                gallery.innerHTML = '';
+
+                if (videos.length === 0) {
+                    gallery.innerHTML = '<p class="col-span-full text-center text-gray-500 py-20">Aucune vidéo traitée pour le moment.</p>';
+                    return;
+                }
+
+                videos.forEach(video => {
+                    const card = document.createElement('div');
+                    card.className = 'bg-gray-800 rounded-2xl overflow-hidden shadow-2xl border border-gray-700 hover:border-orange-500 transition-all duration-300';
+                    
+                    // On prend le format 16x9 par défaut pour l'aperçu, sinon le premier dispo
+                    const format = video.bunny_urls['16x9'] ? '16x9' : Object.keys(video.bunny_urls)[0];
+                    const url = video.bunny_urls[format];
+
+                    card.innerHTML = `
+                        <div class="relative group">
+                            <iframe 
+                                src="${url}" 
+                                class="w-full ${format === '9x16' ? 'aspect-video-9-16' : 'aspect-video-16-9'}" 
+                                loading="lazy" 
+                                style="border: none;" 
+                                allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture;" 
+                                allowfullscreen="true">
+                            </iframe>
+                        </div>
+                        <div class="p-5">
+                            <div class="flex justify-between items-start mb-2">
+                                <h3 class="font-bold text-lg text-gray-100 uppercase tracking-wide">Projet: ${video.id}</h3>
+                                <span class="bg-orange-500/20 text-orange-400 text-xs px-2 py-1 rounded border border-orange-500/30">
+                                    ${video.updated_at.split('T')[0]}
+                                </span>
+                            </div>
+                            <div class="flex flex-wrap gap-2 mt-4">
+                                ${Object.entries(video.bunny_urls).map(([key, link]) => `
+                                    <a href="${link}" target="_blank" class="text-xs bg-gray-700 hover:bg-gray-600 text-gray-300 px-3 py-1.5 rounded-full transition">
+                                        Format ${key}
+                                    </a>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                    gallery.appendChild(card);
+                });
+            } catch (error) {
+                console.error('Erreur au chargement du showcase:', error);
+                document.getElementById('gallery').innerHTML = '<p class="col-span-full text-center text-red-500">Erreur lors du chargement des vidéos.</p>';
+            }
+        }
+
+        loadShowcase();
+    </script>
+</body>
+</html>
