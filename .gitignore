@@ -7,11 +7,13 @@ venv/
 
 # Project specific
 logs/
-production/*/output/
-production/*/status.json
+production/
 video_master.mp4
+video_master.mov
 *.xlsx
 *.csv
+*.mov
+*.mp4
 
 # OS
 .DS_Store
