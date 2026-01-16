@@ -27,6 +27,8 @@ export default async function handler(req, res) {
       id: v.title,
       guid: v.guid,
       updated_at: v.dateCreated,
+      width: v.width,
+      height: v.height,
       url: `https://iframe.mediadelivery.net/play/${libraryId}/${v.guid}`
     }));
 

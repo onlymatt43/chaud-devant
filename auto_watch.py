@@ -2,10 +2,11 @@
 import time, shutil, json, subprocess
 from pathlib import Path
 
+BASE = Path(__file__).parent
 EXPORTS = Path.home() / "exports_from_davinci"
-PROD = Path.home() / "chaud-devant" / "production"
-PIPE = Path.home() / "chaud-devant" / "process.py"
-TPL = Path.home() / "chaud-devant" / "config.default.json"
+PROD = BASE / "production"
+PIPE = BASE / "process.py"
+TPL = BASE / "config.default.json"
 
 SEEN = set()
 DELAY = 5
@@ -19,28 +20,38 @@ EXPORTS.mkdir(exist_ok=True)
 PROD.mkdir(exist_ok=True)
 
 while True:
-    for d in EXPORTS.iterdir():
-        if not d.is_dir():
-            continue
-        if d.name in SEEN:
+    for entry in EXPORTS.iterdir():
+        if entry.name in SEEN or entry.name.startswith("."):
             continue
 
-        mp4 = d / "video_master.mp4"
-        mov = d / "video_master.mov"
+        master = None
+        target_name = None
 
-        if not (mp4.exists() or mov.exists()):
+        # CAS 1 : Un fichier direct (ex: Ma_Video_Dingo.mp4)
+        if entry.is_file() and entry.suffix.lower() in [".mp4", ".mov"]:
+            master = entry
+            target_name = entry.stem # Le titre sera le nom du fichier
+        
+        # CAS 2 : Un dossier (ex: Projet_Alpha/video_master.mp4)
+        elif entry.is_dir():
+            mp4 = entry / "video_master.mp4"
+            mov = entry / "video_master.mov"
+            if mp4.exists(): master = mp4
+            elif mov.exists(): master = mov
+            target_name = entry.name
+
+        if not master or not target_name:
             continue
 
-        master = mp4 if mp4.exists() else mov
         if not stable(master):
             continue
 
-        dst = PROD / d.name
+        dst = PROD / target_name
         dst.mkdir(parents=True, exist_ok=True)
         shutil.move(str(master), dst / master.name)
 
         cfg = json.loads(TPL.read_text())
-        cfg["id"] = d.name
+        cfg["id"] = target_name
         (dst / "config.json").write_text(json.dumps(cfg, indent=2))
         (dst / "status.json").write_text("{}")
 
@@ -50,6 +61,6 @@ while True:
             stderr=subprocess.DEVNULL
         )
 
-        SEEN.add(d.name)
+        SEEN.add(entry.name)
 
     time.sleep(DELAY)

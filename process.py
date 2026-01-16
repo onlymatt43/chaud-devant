@@ -41,13 +41,14 @@ def bunny_upload(file_path, bunny_cfg, log):
         log_event(log, {"step": "bunny_upload", "file": file_path.name, "status": "fail", "err": str(e)})
         return None
 
-def bunny_stream_upload(file_path, stream_cfg, log):
+def bunny_stream_upload(file_path, stream_cfg, log, title=None):
     if not stream_cfg: return None
     try:
         headers = {"AccessKey": stream_cfg["access_key"], "Content-Type": "application/json"}
-        # 1. Créer l'entrée vidéo
+        # 1. Créer l'entrée vidéo (Utilise le titre du projet si fourni)
+        video_title = title if title else file_path.name
         create_url = f"https://video.bunnycdn.com/library/{stream_cfg['library_id']}/videos"
-        resp = requests.post(create_url, headers=headers, json={"title": file_path.name})
+        resp = requests.post(create_url, headers=headers, json={"title": video_title})
         video_id = resp.json()["guid"]
 
         # 2. Upload du fichier
@@ -105,7 +106,14 @@ def process(folder):
     (out/"formats").mkdir(exist_ok=True)
     (out/"inventory").mkdir(exist_ok=True)
     log=f/"logs"/"pipeline.log"
-    master=f/"video_master.mp4"
+    
+    # Recherche automatique du fichier master (Premier fichier mp4 ou mov trouvé)
+    master = next(f.glob("*.mp4"), next(f.glob("*.mov"), None))
+    
+    if not master:
+        log_event(log, {"step": "init", "status": "fail", "err": "Aucun fichier master (.mp4 ou .mov) trouvé"})
+        return
+        
     branded=out/"video_branded.mp4"
 
     if cfg.get("captions",{}).get("enabled"):
@@ -118,14 +126,18 @@ def process(folder):
     if cfg.get("branding",{}).get("enabled"):
         if st.get("branding")!="done":
             outro=Path(cfg["branding"]["outro"])
-            ok=run([
-                "ffmpeg","-y","-i",str(master),"-i",str(outro),
-                "-filter_complex","[0:v][0:a][1:v][1:a]concat=n=2:v=1:a=1",
-                "-c:v","h264_videotoolbox",
-                "-b:v","20M",
-                str(branded)
-            ],log,"branding")
-            st["branding"]="done" if ok else "warning"
+            if not outro.exists():
+                log_event(log, {"step":"branding","status":"warning","err":"Fichier outro manquant, branding annulé"})
+                st["branding"]="missing_outro"
+            else:
+                ok=run([
+                    "ffmpeg","-y","-i",str(master),"-i",str(outro),
+                    "-filter_complex","[0:v][0:a][1:v][1:a]concat=n=2:v=1:a=1",
+                    "-c:v","h264_videotoolbox",
+                    "-b:v","20M",
+                    str(branded)
+                ],log,"branding")
+                st["branding"]="done" if ok else "warning"
     else:
         st["branding"]="skipped"
 
@@ -151,7 +163,9 @@ def process(folder):
             st["formats"][k]="done"
             # Priorité au Stream si configuré, sinon Storage classique
             if cfg.get("bunny_stream"):
-                url = bunny_stream_upload(output_file, cfg["bunny_stream"], log)
+                # On passe l'ID du projet comme titre pour Bunny
+                title = f"{cfg.get('id', 'video')} ({k})"
+                url = bunny_stream_upload(output_file, cfg["bunny_stream"], log, title=title)
                 if url: st["bunny_urls"][k] = url
             elif cfg.get("bunny"):
                 url = bunny_upload(output_file, cfg["bunny"], log)
