@@ -70,18 +70,23 @@
                             </div>
                         </div>
 
-                        <div class="p-5 mt-auto">
-                            <div class="flex justify-between items-start mb-2">
-                                <h3 class="font-bold text-lg text-gray-100 uppercase tracking-wide truncate pr-4" title="${video.id}">
+                        <div class="p-5 mt-auto bg-gray-800/50 backdrop-blur-sm">
+                            <div class="flex flex-col gap-1 mb-3">
+                                <h3 class="font-bold text-base text-gray-100 uppercase tracking-widest leading-tight" title="${video.id}">
                                     ${video.id}
                                 </h3>
-                                <span class="bg-orange-500/20 text-orange-400 text-xs px-2 py-1 rounded border border-orange-500/30 whitespace-nowrap">
-                                    ${new Date(video.updated_at).toLocaleDateString('fr-FR')}
-                                </span>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-orange-500 text-[10px] font-bold uppercase tracking-tighter bg-orange-500/10 px-2 py-0.5 rounded">
+                                        ${isVertical ? 'Vertical' : 'Horizontal'}
+                                    </span>
+                                    <span class="text-gray-500 text-[10px] font-medium italic">
+                                        ${video.updated_at ? new Date(video.updated_at).toLocaleDateString('fr-FR', {day: '2-digit', month: 'short'}) : 'Récemment'}
+                                    </span>
+                                </div>
                             </div>
-                            <div class="mt-4 flex gap-3">
-                                <a href="${video.url}" target="_blank" class="flex-1 text-center text-xs font-bold uppercase tracking-wider bg-gray-700 hover:bg-orange-500 text-gray-300 hover:text-white py-3 rounded-xl transition duration-300">
-                                    Plein écran
+                            <div class="flex gap-3">
+                                <a href="${video.url}" target="_blank" class="flex-1 text-center text-[10px] font-black uppercase tracking-widest bg-orange-600 hover:bg-orange-500 text-white py-3 rounded-lg transition-all duration-300 shadow-lg shadow-orange-900/20">
+                                    Visionner
                                 </a>
                             </div>
                         </div>
@@ -92,7 +97,8 @@
                         const player = this.querySelector('.video-player');
                         const url = player.getAttribute('data-url');
                         if (!player.innerHTML) {
-                            player.innerHTML = `<iframe src="${url}" class="w-full h-full" style="border:none;" allow="autoplay"></iframe>`;
+                            // Correction : Ajout des permissions Fullscreen et style propre
+                            player.innerHTML = `<iframe src="${url}" class="w-full h-full" style="border:none;" allow="autoplay; fullscreen" allowfullscreen="true"></iframe>`;
                         }
                     });
 
