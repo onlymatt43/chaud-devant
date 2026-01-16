@@ -32,6 +32,8 @@
         async function loadShowcase() {
             try {
                 const response = await fetch('showcase.json');
+                if (!response.ok) throw new Error('Fichier non trouvé');
+                
                 const videos = await response.json();
                 const gallery = document.getElementById('gallery');
                 gallery.innerHTML = '';
