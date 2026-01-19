@@ -6,29 +6,64 @@
     <title>Chaud Devant - Showcase</title>
     <style>
         :root {
-            --bg-color: #1a1a1a;
-            --pin-size: min(85vw, 500px); /* Responsive mais max 500px */
+            /* Nuances de blanc / gris très clair */
+            --bg-base: #f7f9fc;
+            --blob-color-1: #eef2f5;
+            --blob-color-2: #ffffff;
+            --pin-size: min(85vw, 550px);
         }
 
         body, html {
             margin: 0;
             padding: 0;
-            background-color: var(--bg-color);
-            color: white;
+            background-color: var(--bg-base);
+            color: #333; /* Texte sombre pour fond clair */
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            overflow: hidden; /* Pour gérer le scroll nous-mêmes */
+            overflow: hidden;
             height: 100%;
         }
 
-        /* Conteneur principal style "TikTok" */
+        /* --- FOND ANIMÉ STYLE "HALO DE LUMIÈRE" --- */
+        .ambient-light {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            background: 
+                radial-gradient(circle at 15% 50%, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 50%),
+                radial-gradient(circle at 85% 30%, rgba(230, 240, 255, 0.4) 0%, rgba(255,255,255,0) 60%);
+            /* On superpose un flou pour lisser les dégradés */
+            backdrop-filter: blur(40px);
+        }
+
+        /* Des "blobs" qui bougent lentement */
+        .blob {
+            position: absolute;
+            background: linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%);
+            filter: blur(60px);
+            opacity: 0.6;
+            animation: moveBlobs 20s infinite alternate ease-in-out;
+            border-radius: 50%;
+        }
+        .blob-1 { top: -10%; left: -10%; width: 50vw; height: 50vw; }
+        .blob-2 { bottom: -10%; right: -10%; width: 60vw; height: 60vw; animation-delay: -5s; background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%); }
+
+        @keyframes moveBlobs {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(50px, 30px) scale(1.1); }
+        }
+
+
+        /* Conteneur principal */
         #feed {
+            position: relative;
+            z-index: 1; /* Au dessus du fond */
             height: 100%;
             overflow-y: scroll;
             scroll-snap-type: y mandatory;
             scroll-behavior: smooth;
         }
 
-        /* Chaque "page" de vidéo */
         .video-slide {
             height: 100%;
             width: 100%;
@@ -39,20 +74,21 @@
             position: relative;
         }
 
-        /* --- LE STYLE MACARON BOMBÉ --- */
+        /* --- LE STYLE MACARON BOMBÉ (Enhanced) --- */
         .macaron-wrapper {
             width: var(--pin-size);
             height: var(--pin-size);
             position: relative;
             border-radius: 50%;
             
-            /* L'ombre portée qui donne la distance avec le fond */
-            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+            /* Ombre portée plus douce pour le fond clair */
+            box-shadow: 
+                0 30px 60px -10px rgba(0,0,0,0.15), /* Ombre large et diffuse */
+                0 10px 20px -5px rgba(0,0,0,0.1);   /* Ombre de contact */
             
-            /* Animation d'entrée */
             opacity: 0;
-            transform: scale(0.8);
-            transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transform: scale(0.9);
+            transition: all 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
         }
 
         .video-slide.active .macaron-wrapper {
@@ -60,97 +96,115 @@
             transform: scale(1);
         }
 
-        /* Le conteneur rond physique */
         .macaron-body {
             width: 100%;
             height: 100%;
             border-radius: 50%;
             overflow: hidden;
             position: relative;
-            border: 6px solid #f0f0f0; /* Bordure blanche type "plastique" */
+            /* Bordure métallique plus subtile */
+            border: 8px solid #ffffff; 
+            outline: 1px solid rgba(0,0,0,0.05); /* Petit contour gris fin */
             box-sizing: border-box;
             background: #000;
+            transform: translateZ(0); /* Hardware accel */
         }
 
-        /* La vidéo */
+        /* La vidéo (ZOOMÉE) */
         .macaron-video {
             width: 100%;
             height: 100%;
-            object-fit: cover; /* Remplit tout le rond */
+            object-fit: cover;
             display: block;
+            /* Le zoom magique demandé : +35% de taille */
+            transform: scale(1.35); 
+            transition: transform 0.5s ease;
         }
 
-        /* L'effet de brillance "Dome" par dessus la vidéo */
+        /* Shine amélioré */
         .macaron-shine {
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
             border-radius: 50%;
-            pointer-events: none; /* Laisse passer les clics */
+            pointer-events: none;
             
-            /* Reflet complexe pour l'effet bombé */
+            /* Reflet style "bouton gel" */
             background: 
-                radial-gradient(circle at 30% 25%, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0) 25%), /* Gros spot */
-                radial-gradient(circle at 50% 10%, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 60%), /* Lumière haut */
-                linear-gradient(180deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 40%, rgba(0,0,0,0.2) 100%); /* Volume global */
-            
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.5); /* Ombre interne sur les bords */
+                radial-gradient(circle at 35% 20%, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 25%),
+                linear-gradient(180deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 40%, rgba(0,0,0,0.1) 100%);
+            box-shadow: inset 0 0 30px rgba(0,0,0,0.1);
             z-index: 2;
         }
 
-        /* Métadonnées (Titre) flottant en dessous */
         .meta-info {
             position: absolute;
-            bottom: 10%;
+            bottom: 8%; /* Un peu plus bas */
             text-align: center;
             width: 100%;
-            opacity: 0.8;
+            opacity: 0; /* Caché par défaut pour épuré */
+            transition: opacity 0.3s;
             pointer-events: none;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
         }
         
-        .meta-title {
-            font-size: 1.2rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+        .video-slide:hover .meta-info {
+            opacity: 1; /* Apparaît au survol */
         }
 
-        /* Bouton Play/Pause centré (invisible si playing) */
+        .meta-title {
+            font-size: 0.9rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #666;
+            background: rgba(255,255,255,0.8);
+            padding: 8px 16px;
+            border-radius: 20px;
+            display: inline-block;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+
         .play-overlay {
             position: absolute;
             top: 50%; left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 4rem;
+            color: white;
+            font-size: 3rem;
             opacity: 0;
             transition: opacity 0.3s;
             z-index: 5;
-            text-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2));
+            pointer-events: none;
         }
         .paused .play-overlay {
-            opacity: 1;
+            opacity: 0.8;
         }
 
     </style>
 </head>
 <body>
 
+<!-- Fond Animé -->
+<div class="ambient-light">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+</div>
+
 <div id="feed">
-    <!-- Les vidéos seront injectées ici -->
+    <!-- Vidéos ici -->
 </div>
 
 <script>
     const feed = document.getElementById('feed');
     let videosData = [];
 
-    // Fonction pour créer une slide vidéo
     function createSlide(videoInfo) {
         const slide = document.createElement('div');
         slide.className = 'video-slide';
         
-        // On cherche la meilleure URL (1x1 priorité absolu pour le rond, sinon 9x16)
         let videoUrl = videoInfo.bunny_urls['1x1'];
         if (!videoUrl) videoUrl = videoInfo.bunny_urls['9x16'];
-        if (!videoUrl) videoUrl = videoInfo.bunny_urls['16x9']; // Fallback ultime
+        if (!videoUrl) videoUrl = videoInfo.bunny_urls['16x9'];
 
         if (!videoUrl) return null;
 
@@ -161,7 +215,9 @@
                         <source src="${videoUrl}" type="video/mp4">
                     </video>
                     <div class="macaron-shine"></div>
-                    <div class="play-overlay">▶</div>
+                    <div class="play-overlay">
+                        <svg width="60" height="60" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                    </div>
                 </div>
             </div>
             <div class="meta-info">
@@ -169,13 +225,12 @@
             </div>
         `;
 
-        // Gestion du clic pour play/pause + son
         const wrapper = slide.querySelector('.macaron-wrapper');
         const video = slide.querySelector('video');
         
         wrapper.addEventListener('click', () => {
              if (video.paused) {
-                 video.muted = false; // On active le son au clic utilisateur
+                 video.muted = false;
                  video.play();
                  wrapper.classList.remove('paused');
              } else {
@@ -184,16 +239,17 @@
              }
         });
 
+        // Autoplay safe
+        wrapper.classList.add('paused'); 
+
         return slide;
     }
 
-    // Chargement des données
     async function init() {
         try {
             const response = await fetch('showcase.json');
             videosData = await response.json();
             
-            // On inverse pour avoir les plus récents en haut
             videosData.reverse().forEach(vid => {
                 const el = createSlide(vid);
                 if (el) feed.appendChild(el);
@@ -202,39 +258,35 @@
             setupObserver();
 
         } catch (e) {
-            console.error("Erreur chargement showcase:", e);
-            feed.innerHTML = "<h2 style='text-align:center'>Aucune vidéo trouvée...</h2>";
+            console.error(e);
+            feed.innerHTML = "<h2 style='text-align:center; margin-top:40vh; color:#999; font-weight:300;'>Chargement...</h2>";
         }
     }
 
-    // Observer pour lancer la vidéo quand elle arrive au centre
     function setupObserver() {
-        const options = {
-            root: feed,
-            threshold: 0.6 // Doit être 60% visible pour s'activer
-        };
-
+        const options = { root: feed, threshold: 0.6 };
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 const video = entry.target.querySelector('video');
+                const wrapper = entry.target.querySelector('.macaron-wrapper');
+                
                 if (entry.isIntersecting) {
                     entry.target.classList.add('active');
-                    // Tentative d'autoplay (souvent muet requis par les navigateurs)
-                    video.play().catch(() => {
-                        // Si autoplay bloqué, on montre que c'est en pause
-                        entry.target.querySelector('.macaron-wrapper').classList.add('paused');
+                    video.play().then(() => {
+                        wrapper.classList.remove('paused');
+                    }).catch(() => {
+                        wrapper.classList.add('paused'); // Autoplay blocked
                     });
                 } else {
                     entry.target.classList.remove('active');
                     video.pause();
-                    video.currentTime = 0; // Reset pour loop propre
+                    video.currentTime = 0;
+                    wrapper.classList.add('paused');
                 }
             });
         }, options);
 
-        document.querySelectorAll('.video-slide').forEach(slide => {
-            observer.observe(slide);
-        });
+        document.querySelectorAll('.video-slide').forEach(slide => observer.observe(slide));
     }
 
     init();

@@ -5,7 +5,7 @@ import requests
 from pathlib import Path
 
 # Configuration Bunny (identique aux autres scripts)
-API_KEY = "64239862-2632-426b-8766-31a8969426f8" # Stream API Key
+API_KEY = "7b43d33b-576e-4890-8fb1dae4d73d-9663-4f27" # Stream API Key
 LIB_ID = "581630"
 SHOWCASE_FILE = Path(__file__).parent / "showcase.json"
 
