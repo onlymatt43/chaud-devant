@@ -34,6 +34,8 @@ def main():
         # On force la config bunny_stream du défaut
         project_data["bunny_stream"] = default_data["bunny_stream"]
         project_data["formats"] = default_data["formats"] # On active aussi le 1x1 partout
+        if "audio" in default_data:
+            project_data["audio"] = default_data["audio"] # Add audio config
         
         cfg_file.write_text(json.dumps(project_data, indent=2))
         print(f"✅ Config mise à jour pour : {project_dir.name}")
@@ -51,6 +53,10 @@ def main():
                 # Donc on va supprimer "formats" du status.
                 if "formats" in st:
                     del st["formats"]
+                
+                # Force audio regen
+                if "audio" in st:
+                    del st["audio"]
                     
                 status_file.write_text(json.dumps(st, indent=2))
                 print(f"🔄 Status réinitialisé pour : {project_dir.name}")

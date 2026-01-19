@@ -115,11 +115,53 @@ def process(folder):
     log=f/"logs"/"pipeline.log"
     
     # Recherche automatique du fichier master (Premier fichier mp4 ou mov trouvé)
-    master = next(f.glob("*.mp4"), next(f.glob("*.mov"), None))
+    # On cherche le fichier master (souvent video_master.mp4 venant de DaVinci)
+    candidates = list(f.glob("*.mp4")) + list(f.glob("*.mov"))
+    # On trie pour être déterministe
+    candidates.sort()
+    
+    master = candidates[0] if candidates else None
     
     if not master:
         log_event(log, {"step": "init", "status": "fail", "err": "Aucun fichier master (.mp4 ou .mov) trouvé"})
         return
+
+    # --- AUDIO OPTIMIZATION ---
+    # Si activé, on génère un 'video_optimized.mp4' qui devient le master pour la suite
+    if cfg.get("audio", {}).get("enabled"):
+        optimized_master = out / "video_optimized.mp4"
+        # On refait si pas fait OU si le master a changé (pas implémenté ici pour simplicité status check)
+        if st.get("audio") != "done" or not optimized_master.exists():
+            filters = []
+            if cfg["audio"].get("denoise"):
+                filters.append("afftdn=nf=-25") # Noise reduction (FFT)
+            if cfg["audio"].get("enhance_speech"):
+                filters.append("highpass=f=80") # Remove low frequency rumble
+                filters.append("acompressor=threshold=-12dB:ratio=2:attack=5:release=50") # Gentle Compression
+            if cfg["audio"].get("normalize"):
+                filters.append("loudnorm=I=-16:TP=-1.5:LRA=11") # Web Standard Normalization
+            
+            af_string = ",".join(filters) if filters else "anull"
+
+            ok = run([
+                "ffmpeg", "-y", "-i", str(master),
+                "-c:v", "copy", # On ne touche pas à l'image ici pour aller vite
+                "-af", af_string,
+                str(optimized_master)
+            ], log, "audio_optimization")
+            
+            if ok:
+                st["audio"] = "done"
+                master = optimized_master # Le reste du script utilisera cette version
+                save_json(f/"status.json", st)
+            else:
+                st["audio"] = "fail"
+                log_event(log, {"step": "audio", "status": "warning", "err": "Audio optimization failed, using original"})
+        else:
+            # Si déjà fait, on utilise le fichier optimisé
+            if optimized_master.exists():
+                master = optimized_master
+    # --------------------------
         
     branded=out/"video_branded.mp4"
 

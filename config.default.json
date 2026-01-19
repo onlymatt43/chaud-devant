@@ -1,5 +1,11 @@
 {
   "languages": ["fr", "en"],
+  "audio": {
+    "enabled": true,
+    "denoise": true,
+    "enhance_speech": true,
+    "normalize": true
+  },
   "captions": { "enabled": true },
   "branding": {
     "enabled": true,
