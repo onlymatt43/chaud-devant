@@ -1,1 +1,98 @@
-[]
+[
+  {
+    "id": "grok-video-ccd422af-770a-41b7-9298-868a89d8599c",
+    "captions": [
+      "fr",
+      "en"
+    ],
+    "formats_generated": [
+      "16x9",
+      "9x16"
+    ],
+    "bunny_urls": {
+      "16x9": "https://vz-INVALID.b-cdn.net/40d113c6-659c-41e5-bf81-b1ca1b347d1b/play_720p.mp4",
+      "9x16": "https://vz-INVALID.b-cdn.net/94db88cf-eb99-4d4b-a4de-ab9580c1d39f/play_720p.mp4"
+    },
+    "updated_at": "2026-01-19T18:17:51.553088Z"
+  },
+  {
+    "id": "new",
+    "captions": [
+      "fr",
+      "en"
+    ],
+    "formats_generated": [
+      "16x9",
+      "9x16"
+    ],
+    "bunny_urls": {
+      "16x9": "https://vz-INVALID.b-cdn.net/c984e248-9a90-4b03-99e3-fe9a95ba804d/play_720p.mp4",
+      "9x16": "https://vz-INVALID.b-cdn.net/fdb32c20-e1d3-48cc-a9bd-0e7ae3cab249/play_720p.mp4"
+    },
+    "updated_at": "2026-01-19T18:17:47.878820Z"
+  },
+  {
+    "id": "2026-01-15-solo-tease-silent",
+    "captions": [
+      "fr",
+      "en"
+    ],
+    "formats_generated": [
+      "16x9",
+      "9x16"
+    ],
+    "bunny_urls": {
+      "16x9": "https://vz-INVALID.b-cdn.net/54ca5217-a757-4b3a-8fc4-91175a101367/play_720p.mp4",
+      "9x16": "https://vz-INVALID.b-cdn.net/67197e1d-8228-4649-8f60-48020e4ba6ed/play_720p.mp4"
+    },
+    "updated_at": "2026-01-19T18:17:43.941005Z"
+  },
+  {
+    "id": "allons-y-encore",
+    "captions": [
+      "fr",
+      "en"
+    ],
+    "formats_generated": [
+      "16x9",
+      "9x16"
+    ],
+    "bunny_urls": {
+      "16x9": "https://iframe.mediadelivery.net/play/581630/4dc120a1-c599-42d6-8302-9c5e46227d2c",
+      "9x16": "https://iframe.mediadelivery.net/play/581630/7c635586-0539-426a-9a11-a68d2e7d8fcc"
+    },
+    "updated_at": "2026-01-19T11:14:44.636900Z"
+  },
+  {
+    "id": "allons-y-assez",
+    "captions": [
+      "fr",
+      "en"
+    ],
+    "formats_generated": [
+      "16x9",
+      "9x16"
+    ],
+    "bunny_urls": {
+      "16x9": "https://iframe.mediadelivery.net/play/581630/56ac4df7-2207-4377-92fb-cbcff2d515eb",
+      "9x16": "https://iframe.mediadelivery.net/play/581630/ac2914f3-1971-489f-bf20-98a52f0dacf2"
+    },
+    "updated_at": "2026-01-19T11:14:07.452600Z"
+  },
+  {
+    "id": "allons-y-finalement",
+    "captions": [
+      "fr",
+      "en"
+    ],
+    "formats_generated": [
+      "16x9",
+      "9x16"
+    ],
+    "bunny_urls": {
+      "16x9": "https://iframe.mediadelivery.net/play/581630/51334c55-b5c3-4335-a8e2-ad5491dafbb1",
+      "9x16": "https://iframe.mediadelivery.net/play/581630/b9f255db-2508-47b9-a47d-90e2f4131e81"
+    },
+    "updated_at": "2026-01-19T11:13:43.667557Z"
+  }
+]

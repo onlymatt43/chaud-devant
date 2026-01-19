@@ -59,8 +59,15 @@ def bunny_stream_upload(file_path, stream_cfg, log, title=None):
             dur = round(time.time() - t, 2)
             log_event(log, {"step": "bunny_stream", "video_id": video_id, "status": "ok", "dur": dur})
 
-        # Retourne l'URL de lecture (Embed)
-        return f"https://iframe.mediadelivery.net/play/{stream_cfg['library_id']}/{video_id}"
+        # Retourne l'URL direct MP4 si possible, sinon Embed
+        # NOTE: Nécessite que l'option "MP4 Fallback" soit activée dans Bunny Stream
+        # URL Format: https://{pull_zone_url}/{video_id}/play_720p.mp4
+        
+        pull_zone = stream_cfg.get("pull_zone_url", "https://vz-INVALID.b-cdn.net")
+        # On enlève le slash de fin s'il existe
+        if pull_zone.endswith("/"): pull_zone = pull_zone[:-1]
+        
+        return f"{pull_zone}/{video_id}/play_720p.mp4"
     except Exception as e:
         log_event(log, {"step": "bunny_stream", "file": file_path.name, "status": "fail", "err": str(e)})
         return None
@@ -150,9 +157,16 @@ def process(folder):
         if st["formats"].get(k)=="done": continue
         
         output_file = out/"formats"/f"web_{k}.mp4"
+        
+        # Smart scaling: Fit within box + Pad with black bars (No distortion)
+        # scale=w:h:force_original_aspect_ratio=decrease
+        # pad=w:h:(ow-iw)/2:(oh-ih)/2
+        w, h = scales[k].split(":")
+        vf_filter = f"scale={w}:{h}:force_original_aspect_ratio=decrease,pad={w}:{h}:(ow-iw)/2:(oh-ih)/2,setsar=1"
+        
         ok=run([
             "ffmpeg","-y","-i",str(src),
-            "-vf",f"scale={scales[k]}",
+            "-vf",vf_filter,
             "-c:v","h264_videotoolbox",
             "-b:v","12M",
             "-profile:v","high",
@@ -182,7 +196,12 @@ def process(folder):
     }
     save_json(out/"inventory"/"inventory.json",inv)
     pd.DataFrame([inv]).to_csv(out/"inventory"/"inventory.csv",index=False)
-    pd.DataFrame([inv]).to_excel(out/"inventory"/"inventory.xlsx",index=False)
+    try:
+        pd.DataFrame([inv]).to_excel(out/"inventory"/"inventory.xlsx",index=False)
+    except Exception as e:
+        # Ce n'est pas grave si l'Excel échoue, on continue
+        print(f"⚠️ Pas d'export Excel : {e}")
+
     st["last_update"]=inv["updated_at"]
     save_json(f/"status.json",st)
     

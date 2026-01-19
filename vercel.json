@@ -1,0 +1,12 @@
+{
+  "env": {
+    "BUNNY_LIBRARY_ID": "581630",
+    "BUNNY_ACCESS_KEY": "7b43d33b-576e-4890-8fb1dae4d73d-9663-4f27"
+  },
+  "rewrites": [
+    {
+      "source": "/",
+      "destination": "/index.html"
+    }
+  ]
+}

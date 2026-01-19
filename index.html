@@ -3,119 +3,242 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vitrine Vidéo - Chaud Devant</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Chaud Devant - Showcase</title>
     <style>
-        .aspect-video-9-16 { aspect-ratio: 9 / 16; }
-        .aspect-video-16-9 { aspect-ratio: 16 / 9; }
-    </style>
-</head>
-<body class="bg-gray-900 text-white min-h-screen">
-    <nav class="p-6 bg-gray-800 border-b border-gray-700 mb-8">
-        <div class="container mx-auto flex justify-between items-center">
-            <h1 class="text-2xl font-bold tracking-tight text-orange-500 italic">CHAUD DEVANT !</h1>
-            <span class="text-gray-400 text-sm">Vitrine Vidéo Automatique</span>
-        </div>
-    </nav>
-
-    <main class="container mx-auto px-4 pb-20">
-        <div id="gallery" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <!-- Les vidéos seront injectées ici -->
-            <div class="animate-pulse flex flex-col space-y-4">
-                <div class="bg-gray-800 rounded-xl aspect-video"></div>
-                <div class="h-4 bg-gray-800 rounded w-3/4"></div>
-            </div>
-        </div>
-    </main>
-
-    <script>
-        async function loadShowcase() {
-            try {
-                // On appelle notre API Vercel qui interroge Bunny en temps réel
-                const response = await fetch('/api/get-videos');
-                if (!response.ok) throw new Error('Fichier non trouvé');
-                
-                const videos = await response.json();
-                const gallery = document.getElementById('gallery');
-                gallery.innerHTML = '';
-
-                if (videos.length === 0) {
-                    gallery.innerHTML = '<p class="col-span-full text-center text-gray-500 py-20">Aucune vidéo traitée pour le moment.</p>';
-                    return;
-                }
-
-                videos.forEach(video => {
-                    const card = document.createElement('div');
-                    card.className = 'bg-gray-800 rounded-2xl overflow-hidden shadow-2xl border border-gray-700 hover:border-orange-500 transition-all duration-300 flex flex-col';
-                    
-                    // Déterminer l'aspect ratio (vertical ou horizontal)
-                    const isVertical = video.height > video.width;
-                    const aspectClass = isVertical ? 'aspect-[9/16]' : 'aspect-video';
-
-                    card.innerHTML = `
-                        <div class="relative group ${aspectClass} bg-black cursor-pointer overflow-hidden rounded-t-2xl">
-                            <!-- Overlay d'attente (Play button) -->
-                            <div class="absolute inset-0 flex items-center justify-center z-10 group-hover:opacity-0 transition-opacity duration-300 bg-gray-800">
-                                <div class="bg-orange-500 rounded-full p-4 shadow-xl shadow-orange-500/20 transform group-hover:scale-110 transition duration-300">
-                                    <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.333-5.89a1.5 1.5 0 000-2.538L6.3 2.841z"></path></svg>
-                                </div>
-                                <div class="absolute bottom-4 left-4 text-xs font-bold text-orange-400 uppercase tracking-widest opacity-70">
-                                    ${isVertical ? 'Format Vertical' : 'Survoler pour lire'}
-                                </div>
-                            </div>
-                            
-                            <!-- Conteneur d'injection de l'iframe -->
-                            <div class="video-player absolute inset-0 w-full h-full opacity-0 group-hover:opacity-100 transition-opacity duration-500" 
-                                 data-url="${video.url}?autoplay=true&muted=true&loop=true">
-                            </div>
-                        </div>
-
-                        <div class="p-5 mt-auto bg-gray-800/50 backdrop-blur-sm">
-                            <div class="flex flex-col gap-1 mb-3">
-                                <h3 class="font-bold text-base text-gray-100 uppercase tracking-widest leading-tight" title="${video.id}">
-                                    ${video.id}
-                                </h3>
-                                <div class="flex items-center gap-2">
-                                    <span class="text-orange-500 text-[10px] font-bold uppercase tracking-tighter bg-orange-500/10 px-2 py-0.5 rounded">
-                                        ${isVertical ? 'Vertical' : 'Horizontal'}
-                                    </span>
-                                    <span class="text-gray-500 text-[10px] font-medium italic">
-                                        ${video.updated_at ? new Date(video.updated_at).toLocaleDateString('fr-FR', {day: '2-digit', month: 'short'}) : 'Récemment'}
-                                    </span>
-                                </div>
-                            </div>
-                            <div class="flex gap-3">
-                                <a href="${video.url}" target="_blank" class="flex-1 text-center text-[10px] font-black uppercase tracking-widest bg-orange-600 hover:bg-orange-500 text-white py-3 rounded-lg transition-all duration-300 shadow-lg shadow-orange-900/20">
-                                    Visionner
-                                </a>
-                            </div>
-                        </div>
-                    `;
-
-                    // Gestion des événements Hover pour charger/décharger la vidéo
-                    card.querySelector('.group').addEventListener('mouseenter', function() {
-                        const player = this.querySelector('.video-player');
-                        const url = player.getAttribute('data-url');
-                        if (!player.innerHTML) {
-                            // Correction : Ajout des permissions Fullscreen et style propre
-                            player.innerHTML = `<iframe src="${url}" class="w-full h-full" style="border:none;" allow="autoplay; fullscreen" allowfullscreen="true"></iframe>`;
-                        }
-                    });
-
-                    card.querySelector('.group').addEventListener('mouseleave', function() {
-                        const player = this.querySelector('.video-player');
-                        player.innerHTML = ''; // Arrête la vidéo et libère la mémoire
-                    });
-
-                    gallery.appendChild(card);
-                });
-            } catch (error) {
-                console.error('Erreur au chargement du showcase:', error);
-                document.getElementById('gallery').innerHTML = '<p class="col-span-full text-center text-red-500 py-20">Erreur lors de la récupération en direct depuis Bunny.net.<br><small class="text-gray-600">Vérifiez vos variables BUNNY_ACCESS_KEY sur Vercel.</small></p>';
-            }
+        :root {
+            --bg-color: #1a1a1a;
+            --pin-size: min(85vw, 500px); /* Responsive mais max 500px */
         }
 
-        loadShowcase();
-    </script>
+        body, html {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: white;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            overflow: hidden; /* Pour gérer le scroll nous-mêmes */
+            height: 100%;
+        }
+
+        /* Conteneur principal style "TikTok" */
+        #feed {
+            height: 100%;
+            overflow-y: scroll;
+            scroll-snap-type: y mandatory;
+            scroll-behavior: smooth;
+        }
+
+        /* Chaque "page" de vidéo */
+        .video-slide {
+            height: 100%;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            scroll-snap-align: center;
+            position: relative;
+        }
+
+        /* --- LE STYLE MACARON BOMBÉ --- */
+        .macaron-wrapper {
+            width: var(--pin-size);
+            height: var(--pin-size);
+            position: relative;
+            border-radius: 50%;
+            
+            /* L'ombre portée qui donne la distance avec le fond */
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+            
+            /* Animation d'entrée */
+            opacity: 0;
+            transform: scale(0.8);
+            transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .video-slide.active .macaron-wrapper {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        /* Le conteneur rond physique */
+        .macaron-body {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            overflow: hidden;
+            position: relative;
+            border: 6px solid #f0f0f0; /* Bordure blanche type "plastique" */
+            box-sizing: border-box;
+            background: #000;
+        }
+
+        /* La vidéo */
+        .macaron-video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Remplit tout le rond */
+            display: block;
+        }
+
+        /* L'effet de brillance "Dome" par dessus la vidéo */
+        .macaron-shine {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            border-radius: 50%;
+            pointer-events: none; /* Laisse passer les clics */
+            
+            /* Reflet complexe pour l'effet bombé */
+            background: 
+                radial-gradient(circle at 30% 25%, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0) 25%), /* Gros spot */
+                radial-gradient(circle at 50% 10%, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 60%), /* Lumière haut */
+                linear-gradient(180deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 40%, rgba(0,0,0,0.2) 100%); /* Volume global */
+            
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.5); /* Ombre interne sur les bords */
+            z-index: 2;
+        }
+
+        /* Métadonnées (Titre) flottant en dessous */
+        .meta-info {
+            position: absolute;
+            bottom: 10%;
+            text-align: center;
+            width: 100%;
+            opacity: 0.8;
+            pointer-events: none;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+        }
+        
+        .meta-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Bouton Play/Pause centré (invisible si playing) */
+        .play-overlay {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 4rem;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 5;
+            text-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        }
+        .paused .play-overlay {
+            opacity: 1;
+        }
+
+    </style>
+</head>
+<body>
+
+<div id="feed">
+    <!-- Les vidéos seront injectées ici -->
+</div>
+
+<script>
+    const feed = document.getElementById('feed');
+    let videosData = [];
+
+    // Fonction pour créer une slide vidéo
+    function createSlide(videoInfo) {
+        const slide = document.createElement('div');
+        slide.className = 'video-slide';
+        
+        // On cherche la meilleure URL (1x1 priorité absolu pour le rond, sinon 9x16)
+        let videoUrl = videoInfo.bunny_urls['1x1'];
+        if (!videoUrl) videoUrl = videoInfo.bunny_urls['9x16'];
+        if (!videoUrl) videoUrl = videoInfo.bunny_urls['16x9']; // Fallback ultime
+
+        if (!videoUrl) return null;
+
+        slide.innerHTML = `
+            <div class="macaron-wrapper">
+                <div class="macaron-body">
+                    <video class="macaron-video" loop playsinline muted>
+                        <source src="${videoUrl}" type="video/mp4">
+                    </video>
+                    <div class="macaron-shine"></div>
+                    <div class="play-overlay">▶</div>
+                </div>
+            </div>
+            <div class="meta-info">
+                <div class="meta-title">${videoInfo.id.replace(/_/g, ' ')}</div>
+            </div>
+        `;
+
+        // Gestion du clic pour play/pause + son
+        const wrapper = slide.querySelector('.macaron-wrapper');
+        const video = slide.querySelector('video');
+        
+        wrapper.addEventListener('click', () => {
+             if (video.paused) {
+                 video.muted = false; // On active le son au clic utilisateur
+                 video.play();
+                 wrapper.classList.remove('paused');
+             } else {
+                 video.pause();
+                 wrapper.classList.add('paused');
+             }
+        });
+
+        return slide;
+    }
+
+    // Chargement des données
+    async function init() {
+        try {
+            const response = await fetch('showcase.json');
+            videosData = await response.json();
+            
+            // On inverse pour avoir les plus récents en haut
+            videosData.reverse().forEach(vid => {
+                const el = createSlide(vid);
+                if (el) feed.appendChild(el);
+            });
+
+            setupObserver();
+
+        } catch (e) {
+            console.error("Erreur chargement showcase:", e);
+            feed.innerHTML = "<h2 style='text-align:center'>Aucune vidéo trouvée...</h2>";
+        }
+    }
+
+    // Observer pour lancer la vidéo quand elle arrive au centre
+    function setupObserver() {
+        const options = {
+            root: feed,
+            threshold: 0.6 // Doit être 60% visible pour s'activer
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                const video = entry.target.querySelector('video');
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                    // Tentative d'autoplay (souvent muet requis par les navigateurs)
+                    video.play().catch(() => {
+                        // Si autoplay bloqué, on montre que c'est en pause
+                        entry.target.querySelector('.macaron-wrapper').classList.add('paused');
+                    });
+                } else {
+                    entry.target.classList.remove('active');
+                    video.pause();
+                    video.currentTime = 0; // Reset pour loop propre
+                }
+            });
+        }, options);
+
+        document.querySelectorAll('.video-slide').forEach(slide => {
+            observer.observe(slide);
+        });
+    }
+
+    init();
+</script>
+
 </body>
 </html>
