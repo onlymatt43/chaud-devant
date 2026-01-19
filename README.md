@@ -1,53 +1,98 @@
-# Chaud Devant - Workflow Video Automatisé
+# Chaud Devant - Workflow Vidéo Automatisé 🚀
 
-Ce projet automatise le traitement vidéo depuis l'export DaVinci Resolve jusqu'à la publication sur le web (Bunny.net).
+Ce projet est une "machine de guerre" qui automatise tout le cycle de vie d'une vidéo : de l'export DaVinci Resolve jusqu'à sa publication sur un site web, en passant par l'amélioration audio et l'encodage.
 
-## Le Flow Complet
+## ✨ Fonctionnalités
 
-1. **DaVinci Resolve (Montage & Export)**
-   - Faites votre montage dans Resolve.
-   - Utilisez le script `davinci_export_pipeline.py` pour exporter automatiquement vers le dossier surveillé.
-   - Le script va exporter la timeline active en `H.264` (`.mp4`) dans `~/exports_from_davinci`.
+*   **Export DaVinci Automatique** : Script Python pour exporter la timeline active sans clic.
+*   **Traitement Intelligent** :
+    *   **Encodage** : Génération automatique des formats 16:9, 9:16 et 1:1.
+    *   **Audio Pro** 🎚️ : Denoise (réduction de bruit), Enhance Speech (boost vocal) et Normalisation (-16 LUFS) automatiques.
+    *   **Branding** : Ajout automatique d'une outro (si configuré).
+*   **Hébergement Bunny.net** : Upload direct sur le CDN vidéo streaming.
+*   **Déploiement Continu** 🚀 : Push automatique sur GitHub à la fin du traitement pour mettre à jour le site Vercel.
+*   **Bonus "Beat Sync"** 🎵 : Un outil séparé pour caler des coupures vidéo sur le rythme d'une musique.
 
-2. **Surveillance & Ingestion (`auto_watch.py`)**
-   - Lancez le script de surveillance : `python3 auto_watch.py`
-   - Il détecte les nouveaux fichiers dans `~/exports_from_davinci`.
-   - Il déplace les fichiers dans `production/` et crée la structure du projet.
-   - Il lance le traitement (`process.py`).
+---
 
-3. **Traitement (`process.py`)**
-   - **Captions** : Génère les sous-titres avec Whisper/OpenAI (si activé).
-   - **Branding** : Ajoute l'outro (si activée).
-   - **Formats** : Convertit en 16:9, 9:16, etc.
-   - **Upload** : Envoie les fichiers sur Bunny Stream.
-   - **Inventory** : Met à jour `showcase.json` et `status.json`.
+## 🛠️ Installation & Prérequis
 
-4. **Frontend (`index.html`)**
-   - La vitrine web récupère les vidéos via l'API Bunny Stream (via `api/get-videos.js`).
+1.  **Python & FFmpeg** : Assurez-vous d'avoir Python 3.10+ et FFmpeg installés (`brew install ffmpeg`).
+2.  **Dépendances** :
+    ```bash
+    pip install -r requirements.txt
+    pip install moviepy librosa soundfile openpyxl
+    ```
+3.  **Variables `.env`** :
+    Créez un fichier `.env` avec vos accès Bunny.net :
+    ```ini
+    BUNNY_LIBRARY_ID=581630
+    BUNNY_ACCESS_KEY=7b43d3...
+    ```
 
-## Installation
+---
 
-### 1. Prérequis Python
-Installez les dépendances :
+## 🚦 Le Pipeline Principal
+
+### 1. Export depuis DaVinci
+Dans DaVinci Resolve : `Workspace > Scripts > Comp > davinci_export_pipeline`
+*   Cela exporte la timeline courante dans `~/exports_from_davinci`.
+
+### 2. Le Watchdog (`auto_watch.py`)
+Ce script doit tourner en arrière-plan sur votre Mac. Il surveille le dossier d'export.
 ```bash
-pip install -r requirements.txt
+python3 auto_watch.py
 ```
-Assurez-vous d'avoir `ffmpeg` et `whisper` installés sur le système.
+Dès qu'un fichier arrive :
+1.  Il le déplace dans `production/`.
+2.  Il lance `process.py`.
+3.  Il améliore le son, encode les vidéos, et upload sur Bunny.
+4.  Il met à jour `showcase.json`.
+5.  Il fait un `git push` pour mettre à jour le site web.
 
-### 2. Configuration DaVinci Resolve
-Pour utiliser le script d'export dans Resolve :
-1. Ouvrez DaVinci Resolve.
-2. Allez dans `Workspace` > `Console`.
-3. Choisissez `Py 3`.
-4. Vous pouvez exécuter le script directement, ou le copier dans le dossier des scripts de Resolve :
-   - Mac : `/Library/Application Support/Blackmagic Design/DaVinci Resolve/Fusion/Scripts/Comp/`
-   - Ou exécuter via le terminal système si Resolve est ouvert (nécessite configuration PYTHONPATH).
-   
-*Le plus simple est d'ouvrir `davinci_export_pipeline.py` dans un éditeur externe et de copier-coller dans la console Resolve ou de le lancer via "Script" menu si placé au bon endroit.*
+### 3. Le Site Web
+Le fichier `index.html` est votre vitrine.
+*   Design style "Macaron" / Badges ronds.
+*   Thème clair animé.
+*   Lecture directe MP4 optimisée.
 
-### 3. Variables d'Environnement (.env)
-Créez un fichier `.env` à la racine avec vos clés Bunny.net :
-```
-BUNNY_LIBRARY_ID=...
-BUNNY_ACCESS_KEY=...
+---
+
+## 🎵 Outil Bonus : Beat Sync
+
+Pour créer des montages "glitch" qui changent de plan à chaque note de musique :
+
+1.  Mettez votre vidéo (`.mp4`) et votre musique (`.mp3`) dans un même dossier.
+2.  Copiez-y le fichier **`lanceur_beat_sync.command`**.
+3.  Double-cliquez sur le lanceur.
+4.  Le script génère `beat_synced_output.mp4` automatiquement.
+
+---
+
+## 🧹 Maintenance & Outils
+
+*   **`regenerate_all.py`** : Relance le traitement (audio + vidéo) sur tous les dossiers existants dans `production/`.
+*   **`fix_configs.py`** : Met à jour les fichiers de config de tous les projets avec les derniers réglages (audio, clés API).
+*   **`sync_bunny_library.py`** : Compare votre dossier local avec Bunny.net et supprime les vidéos orphelines en ligne.
+*   **`delete_video.py`** : Pour supprimer proprement un projet (local + remote).
+
+---
+
+## ⚙️ Configuration (`config.default.json`)
+
+Vous pouvez ajuster les réglages par défaut ici :
+```json
+{
+  "audio": {
+    "enabled": true,
+    "denoise": true,     // Réduction de bruit
+    "enhance_speech": true, // EQ + Compression voix
+    "normalize": true    // Standard web -16 LUFS
+  },
+  "formats": {
+    "16x9": true,
+    "9x16": true,
+    "1x1": true
+  }
+}
 ```
