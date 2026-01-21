@@ -250,6 +250,20 @@ def process(folder):
     # Update central showcase
     update_global_showcase(inv, Path(__file__).parent)
 
+    # AUTO-DEPLOY : Git Push to trigger Vercel
+    root_path = Path(__file__).parent
+    try:
+        print("🔄 Sync Vercel (Git Push)...")
+        # On ajoute seulement showcase.json pour éviter de commit des trucs temporaires
+        subprocess.run(["git", "add", "showcase.json"], cwd=root_path, check=False, stdout=subprocess.DEVNULL)
+        # On commit si y'a des changements
+        subprocess.run(["git", "commit", "-m", f"update: showcase {inv.get('id', 'video')}"], cwd=root_path, check=False, stdout=subprocess.DEVNULL)
+        # On pousse
+        subprocess.run(["git", "push", "origin", "main"], cwd=root_path, check=False, stdout=subprocess.DEVNULL)
+        print("✅ Site mis à jour sur Vercel !")
+    except Exception as e:
+        print(f"⚠️ Erreur sync git: {e}")
+
     if st.get("bunny_urls"):
         print("\n--- Bunny.net URLs ---")
         for k, url in st["bunny_urls"].items():

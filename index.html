@@ -6,189 +6,106 @@
     <title>Chaud Devant - Showcase</title>
     <style>
         :root {
-            /* Nuances de blanc / gris très clair */
-            --bg-base: #f7f9fc;
-            --blob-color-1: #eef2f5;
-            --blob-color-2: #ffffff;
-            --pin-size: min(85vw, 550px);
+            /* Fond sombre bleu-vert presque noir */
+            --bg-base: #020b0e;
+            --text-color: #e0f2f1;
+            --card-bg: #091418;
         }
 
         body, html {
             margin: 0;
             padding: 0;
             background-color: var(--bg-base);
-            color: #333; /* Texte sombre pour fond clair */
+            color: var(--text-color);
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            overflow: hidden;
-            height: 100%;
+            min-height: 100vh;
+            overflow-x: hidden;
         }
 
-        /* --- FOND ANIMÉ STYLE "HALO DE LUMIÈRE" --- */
-        .ambient-light {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none;
-            z-index: 0;
-            background: 
-                radial-gradient(circle at 15% 50%, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 50%),
-                radial-gradient(circle at 85% 30%, rgba(230, 240, 255, 0.4) 0%, rgba(255,255,255,0) 60%);
-            /* On superpose un flou pour lisser les dégradés */
-            backdrop-filter: blur(40px);
-        }
-
-        /* Des "blobs" qui bougent lentement */
-        .blob {
-            position: absolute;
-            background: linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%);
-            filter: blur(60px);
-            opacity: 0.6;
-            animation: moveBlobs 20s infinite alternate ease-in-out;
-            border-radius: 50%;
-        }
-        .blob-1 { top: -10%; left: -10%; width: 50vw; height: 50vw; }
-        .blob-2 { bottom: -10%; right: -10%; width: 60vw; height: 60vw; animation-delay: -5s; background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%); }
-
-        @keyframes moveBlobs {
-            0% { transform: translate(0, 0) scale(1); }
-            100% { transform: translate(50px, 30px) scale(1.1); }
-        }
-
-
-        /* Conteneur principal */
+        /* Conteneur principal - Mosaïque */
         #feed {
-            position: relative;
-            z-index: 1; /* Au dessus du fond */
-            height: 100%;
-            overflow-y: scroll;
-            scroll-snap-type: y mandatory;
-            scroll-behavior: smooth;
-        }
-
-        .video-slide {
-            height: 100%;
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            scroll-snap-align: center;
-            position: relative;
-        }
-
-        /* --- LE STYLE MACARON BOMBÉ (Enhanced) --- */
-        .macaron-wrapper {
-            width: var(--pin-size);
-            height: var(--pin-size);
-            position: relative;
-            border-radius: 50%;
-            
-            /* Ombre portée plus douce pour le fond clair */
-            box-shadow: 
-                0 30px 60px -10px rgba(0,0,0,0.15), /* Ombre large et diffuse */
-                0 10px 20px -5px rgba(0,0,0,0.1);   /* Ombre de contact */
-            
-            opacity: 0;
-            transform: scale(0.9);
-            transition: all 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
-        }
-
-        .video-slide.active .macaron-wrapper {
-            opacity: 1;
-            transform: scale(1);
-        }
-
-        .macaron-body {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            overflow: hidden;
-            position: relative;
-            /* Bordure métallique plus subtile */
-            border: 8px solid #ffffff; 
-            outline: 1px solid rgba(0,0,0,0.05); /* Petit contour gris fin */
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+            padding: 40px;
             box-sizing: border-box;
+            width: 100%;
+            max-width: 1800px;
+            margin: 0 auto;
+        }
+
+        /* Carte vidéo */
+        .video-card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .video-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 12px rgba(0,0,0,0.4);
+        }
+
+        .video-container {
+            position: relative;
+            width: 100%;
+            /* Aspect ratio par défaut ou auto, on laisse la video déterminer la hauteur ou on fixe un ratio commun? 
+               Pour "formats originaux sans bande noires", on laisse la video prendre sa place. 
+               Mais pour une grille alignée, c'est mieux d'avoir une consistance. 
+               Essayons width 100% et height auto. */
             background: #000;
-            transform: translateZ(0); /* Hardware accel */
+            line-height: 0;
         }
 
-        /* La vidéo (ZOOMÉE) */
-        .macaron-video {
+        video {
             width: 100%;
-            height: 100%;
-            object-fit: cover;
+            height: auto;
             display: block;
-            /* Le zoom magique demandé : +35% de taille */
-            transform: scale(1.35); 
-            transition: transform 0.5s ease;
+            object-fit: cover; /* Remplit la largeur */
         }
 
-        /* Shine amélioré */
-        .macaron-shine {
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            border-radius: 50%;
-            pointer-events: none;
-            
-            /* Reflet style "bouton gel" */
-            background: 
-                radial-gradient(circle at 35% 20%, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 25%),
-                linear-gradient(180deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 40%, rgba(0,0,0,0.1) 100%);
-            box-shadow: inset 0 0 30px rgba(0,0,0,0.1);
-            z-index: 2;
-        }
-
-        .meta-info {
-            position: absolute;
-            bottom: 8%; /* Un peu plus bas */
-            text-align: center;
-            width: 100%;
-            opacity: 0; /* Caché par défaut pour épuré */
-            transition: opacity 0.3s;
-            pointer-events: none;
-        }
-        
-        .video-slide:hover .meta-info {
-            opacity: 1; /* Apparaît au survol */
-        }
-
-        .meta-title {
-            font-size: 0.9rem;
-            font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            color: #666;
-            background: rgba(255,255,255,0.8);
-            padding: 8px 16px;
-            border-radius: 20px;
-            display: inline-block;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-        }
-
+        /* Overlay Play */
         .play-overlay {
             position: absolute;
             top: 50%; left: 50%;
             transform: translate(-50%, -50%);
-            color: white;
+            color: rgba(255,255,255,0.7);
             font-size: 3rem;
             opacity: 0;
-            transition: opacity 0.3s;
-            z-index: 5;
-            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2));
             pointer-events: none;
+            transition: opacity 0.3s;
         }
-        .paused .play-overlay {
-            opacity: 0.8;
+        
+        /* Quand la vidéo est en pause ou au chargement initial */
+        .video-container.paused .play-overlay {
+            opacity: 1;
         }
 
+        /* Infos méta */
+        .meta-info {
+            padding: 15px;
+            font-size: 0.9rem;
+            text-align: left;
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .meta-title {
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #b0bec5;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
     </style>
 </head>
 <body>
-
-<!-- Fond Animé -->
-<div class="ambient-light">
-    <div class="blob blob-1"></div>
-    <div class="blob blob-2"></div>
-</div>
 
 <div id="feed">
     <!-- Vidéos ici -->
@@ -199,25 +116,24 @@
     let videosData = [];
 
     function createSlide(videoInfo) {
-        const slide = document.createElement('div');
-        slide.className = 'video-slide';
+        const card = document.createElement('div');
+        card.className = 'video-card';
         
-        let videoUrl = videoInfo.bunny_urls['1x1'];
+        // Priorité modifiée pour trouver le format le plus "original" / grand possible
+        // Si "16x9" existe, c'est souvent le format ciné. Sinon 1x1.
+        let videoUrl = videoInfo.bunny_urls['16x9'];
+        if (!videoUrl) videoUrl = videoInfo.bunny_urls['1x1'];
         if (!videoUrl) videoUrl = videoInfo.bunny_urls['9x16'];
-        if (!videoUrl) videoUrl = videoInfo.bunny_urls['16x9'];
 
         if (!videoUrl) return null;
 
-        slide.innerHTML = `
-            <div class="macaron-wrapper">
-                <div class="macaron-body">
-                    <video class="macaron-video" loop playsinline muted>
-                        <source src="${videoUrl}" type="video/mp4">
-                    </video>
-                    <div class="macaron-shine"></div>
-                    <div class="play-overlay">
-                        <svg width="60" height="60" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-                    </div>
+        card.innerHTML = `
+            <div class="video-container paused">
+                <video loop playsinline muted preload="metadata">
+                    <source src="${videoUrl}" type="video/mp4">
+                </video>
+                <div class="play-overlay">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
                 </div>
             </div>
             <div class="meta-info">
@@ -225,24 +141,40 @@
             </div>
         `;
 
-        const wrapper = slide.querySelector('.macaron-wrapper');
-        const video = slide.querySelector('video');
+        const container = card.querySelector('.video-container');
+        const video = card.querySelector('video');
         
-        wrapper.addEventListener('click', () => {
+        // Click to play/pause
+        container.addEventListener('click', () => {
              if (video.paused) {
-                 video.muted = false;
+                 // Stop d'autres vidéos si nécessaire? Pas obligatoire pour une mosaïque
+                 // video.muted = false; // Optionnel : activer le son au clic
                  video.play();
-                 wrapper.classList.remove('paused');
+                 container.classList.remove('paused');
              } else {
                  video.pause();
-                 wrapper.classList.add('paused');
+                 container.classList.add('paused');
+             }
+        });
+        
+        // Mouse enter/leave pour autoplay silencieux (preview)
+        card.addEventListener('mouseenter', () => {
+            if(video.paused) {
+                video.muted = true;
+                video.play().catch(()=>{});
+                container.classList.remove('paused');
+            }
+        });
+
+        card.addEventListener('mouseleave', () => {
+             if(!video.paused) {
+                 video.pause();
+                 video.currentTime = 0;
+                 container.classList.add('paused');
              }
         });
 
-        // Autoplay safe
-        wrapper.classList.add('paused'); 
-
-        return slide;
+        return card;
     }
 
     async function init() {
@@ -250,47 +182,27 @@
             const response = await fetch('showcase.json');
             videosData = await response.json();
             
+            // Inverser pour avoir les récents en premier ?? Oui selon le code précédent
             videosData.reverse().forEach(vid => {
                 const el = createSlide(vid);
                 if (el) feed.appendChild(el);
             });
 
-            setupObserver();
+            // On retire l'IntersectionObserver style "snap scroll"
+            // La mosaïque gère l'affichage statique
 
         } catch (e) {
             console.error(e);
-            feed.innerHTML = "<h2 style='text-align:center; margin-top:40vh; color:#999; font-weight:300;'>Chargement...</h2>";
+            feed.innerHTML = "<h2 style='text-align:center; margin-top:100px; color:#555;'>Chargement...</h2>";
         }
     }
 
-    function setupObserver() {
-        const options = { root: feed, threshold: 0.6 };
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                const video = entry.target.querySelector('video');
-                const wrapper = entry.target.querySelector('.macaron-wrapper');
-                
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('active');
-                    video.play().then(() => {
-                        wrapper.classList.remove('paused');
-                    }).catch(() => {
-                        wrapper.classList.add('paused'); // Autoplay blocked
-                    });
-                } else {
-                    entry.target.classList.remove('active');
-                    video.pause();
-                    video.currentTime = 0;
-                    wrapper.classList.add('paused');
-                }
-            });
-        }, options);
-
-        document.querySelectorAll('.video-slide').forEach(slide => observer.observe(slide));
-    }
+    // Plus besoin de setupObserver pour l'activation au scroll snap.
+    // Les vidéos se jouent au survol.
 
     init();
 </script>
+
 
 </body>
 </html>

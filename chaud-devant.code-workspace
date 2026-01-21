@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../exports_from_davinci"
+		},
+		{
+			"path": "../Library/Application Support/Blackmagic Design/DaVinci Resolve/Fusion/Scripts/Comp"
+		}
+	],
+	"settings": {}
+}
