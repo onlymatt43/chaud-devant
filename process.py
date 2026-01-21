@@ -96,10 +96,21 @@ def update_global_showcase(new_inv, root_path):
 
 def process(folder):
     f=Path(folder)
-    cfg=load_json(f/"config.json",{})
+    # Chargement de la config par défaut
+    cfg = load_json(Path(__file__).parent / "config.default.json", {})
+    
+    # Chargement et fusion de la config locale
+    local_cfg = load_json(f/"config.json",{})
+    for k, v in local_cfg.items():
+        if k in cfg and isinstance(cfg[k], dict) and isinstance(v, dict):
+            cfg[k].update(v)
+        else:
+            cfg[k] = v
+
     st=load_json(f/"status.json",{})
 
     # Injection des secrets depuis l'environnement
+    if "bunny_stream" not in cfg: cfg["bunny_stream"] = {}
     bunny_stream_cfg = cfg.get("bunny_stream", {})
     if os.getenv("BUNNY_LIBRARY_ID"):
         bunny_stream_cfg["library_id"] = os.getenv("BUNNY_LIBRARY_ID")

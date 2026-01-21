@@ -91,11 +91,11 @@
         const card = document.createElement('div');
         card.className = 'video-card';
         
-        // Priorité modifiée pour trouver le format le plus "original" / grand possible
-        // Si "16x9" existe, c'est souvent le format ciné. Sinon 1x1.
-        let videoUrl = videoInfo.bunny_urls['16x9'];
+        // Priorité changée de 16:9 vers 9:16 pour favoriser le format vertical (mobile/social)
+        // et éviter les bandes noires latérales sur le contenu vertical encapsulé en 16:9.
+        let videoUrl = videoInfo.bunny_urls['9x16'];
+        if (!videoUrl) videoUrl = videoInfo.bunny_urls['16x9'];
         if (!videoUrl) videoUrl = videoInfo.bunny_urls['1x1'];
-        if (!videoUrl) videoUrl = videoInfo.bunny_urls['9x16'];
 
         if (!videoUrl) return null;
 
