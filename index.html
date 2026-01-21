@@ -91,11 +91,19 @@
         const card = document.createElement('div');
         card.className = 'video-card';
         
-        // Priorité changée de 16:9 vers 9:16 pour favoriser le format vertical (mobile/social)
-        // et éviter les bandes noires latérales sur le contenu vertical encapsulé en 16:9.
-        let videoUrl = videoInfo.bunny_urls['9x16'];
-        if (!videoUrl) videoUrl = videoInfo.bunny_urls['16x9'];
-        if (!videoUrl) videoUrl = videoInfo.bunny_urls['1x1'];
+        // --- LOGIQUE INTELLIGENTE (RESPONSIVE) ---
+        // Détecte si l'écran est plutôt vertical (Mobile) ou horizontal (Desktop)
+        const isMobile = window.innerHeight > window.innerWidth;
+        
+        let videoUrl = null;
+
+        if (isMobile) {
+            // Priorité MOBILE : 9x16 > 1x1 > 16x9
+            videoUrl = videoInfo.bunny_urls['9x16'] || videoInfo.bunny_urls['1x1'] || videoInfo.bunny_urls['16x9'];
+        } else {
+            // Priorité DESKTOP : 16x9 > 1x1 > 9x16
+            videoUrl = videoInfo.bunny_urls['16x9'] || videoInfo.bunny_urls['1x1'] || videoInfo.bunny_urls['9x16'];
+        }
 
         if (!videoUrl) return null;
 
