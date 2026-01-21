@@ -22,42 +22,45 @@
             overflow-x: hidden;
         }
 
-        /* Conteneur principal - Mosaïque */
+        /* Conteneur principal - Mosaïque type Masonry (Pinterest) */
         #feed {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-            gap: 20px;
+            column-count: 3;
+            column-gap: 20px;
             padding: 40px;
-            box-sizing: border-box;
             width: 100%;
-            max-width: 1800px;
+            max-width: 1600px;
             margin: 0 auto;
+            box-sizing: border-box;
         }
 
-        /* Carte vidéo */
+        @media (max-width: 1200px) {
+            #feed { column-count: 2; }
+        }
+        
+        @media (max-width: 600px) {
+            #feed { column-count: 1; }
+        }
+
+        /* Carte vidéo - Juste le bloc image */
         .video-card {
-            background: var(--card-bg);
-            border-radius: 8px;
+            background: transparent;
+            border-radius: 0;
             overflow: hidden;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: none;
             position: relative;
-            display: flex;
-            flex-direction: column;
+            margin-bottom: 20px; /* Espace vertical entre les éléments */
+            break-inside: avoid; /* Empêche de couper une vidéo entre deux colonnes */
+            transform: translateZ(0); /* Fix pour certains glitchs de rendu */
+            transition: opacity 0.3s ease;
         }
 
         .video-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 12px rgba(0,0,0,0.4);
+            opacity: 0.9;
         }
 
         .video-container {
             position: relative;
             width: 100%;
-            /* Aspect ratio par défaut ou auto, on laisse la video déterminer la hauteur ou on fixe un ratio commun? 
-               Pour "formats originaux sans bande noires", on laisse la video prendre sa place. 
-               Mais pour une grille alignée, c'est mieux d'avoir une consistance. 
-               Essayons width 100% et height auto. */
             background: #000;
             line-height: 0;
         }
@@ -66,42 +69,11 @@
             width: 100%;
             height: auto;
             display: block;
-            object-fit: cover; /* Remplit la largeur */
         }
 
-        /* Overlay Play */
-        .play-overlay {
-            position: absolute;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            color: rgba(255,255,255,0.7);
-            font-size: 3rem;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s;
-        }
-        
-        /* Quand la vidéo est en pause ou au chargement initial */
-        .video-container.paused .play-overlay {
-            opacity: 1;
-        }
-
-        /* Infos méta */
-        .meta-info {
-            padding: 15px;
-            font-size: 0.9rem;
-            text-align: left;
-            border-top: 1px solid rgba(255,255,255,0.05);
-        }
-
-        .meta-title {
-            font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: #b0bec5;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+        /* Suppression des éléments demandés */
+        .play-overlay, .meta-info {
+            display: none;
         }
     </style>
 </head>
@@ -132,12 +104,6 @@
                 <video loop playsinline muted preload="metadata">
                     <source src="${videoUrl}" type="video/mp4">
                 </video>
-                <div class="play-overlay">
-                    <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-                </div>
-            </div>
-            <div class="meta-info">
-                <div class="meta-title">${videoInfo.id.replace(/_/g, ' ')}</div>
             </div>
         `;
 
