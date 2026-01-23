@@ -1,5 +1,23 @@
 [
   {
+    "id": "Pont de fourrure",
+    "captions": [
+      "fr",
+      "en"
+    ],
+    "formats_generated": [
+      "16x9",
+      "9x16",
+      "1x1"
+    ],
+    "bunny_urls": {
+      "16x9": "https://vz-72668a20-6b9.b-cdn.net/8ba55531-f54b-42bb-87a6-c30c709b7d3f/play_720p.mp4",
+      "9x16": "https://vz-72668a20-6b9.b-cdn.net/b2124580-19d1-489f-91e1-958ed4affca4/play_720p.mp4",
+      "1x1": "https://vz-72668a20-6b9.b-cdn.net/486f524c-f4ac-4f21-9cdd-b1b47121df2f/play_720p.mp4"
+    },
+    "updated_at": "2026-01-23T02:13:08.066231Z"
+  },
+  {
     "id": "solo-tease",
     "captions": [
       "fr",
