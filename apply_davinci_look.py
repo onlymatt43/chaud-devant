@@ -33,6 +33,15 @@ def main():
 
     print(f"🎨 Application du Look sur : {timeline.GetName()}")
 
+    # ASTUCE PRO : On force l'ouverture de la page Color
+    # Certaines commandes de grading retournent None si on est dans Edit
+    if resolve.GetCurrentPage() != "Color":
+        print("🔄 Bascule vers la page Color pour activer l'API Grading...")
+        resolve.OpenPage("Color")
+        # Petite pause pour laisser le temps à l'UI de charger
+        import time
+        time.sleep(1)
+
     if not os.path.exists(BASE_LOOK_PATH):
         print(f"❌ Fichier de Look introuvable : {BASE_LOOK_PATH}")
         print("👉 Veuillez exporter un 'Still' depuis la page Color (.drx) et le placer ici.")
