@@ -8,7 +8,8 @@ if os.path.exists(RESOLVE_SCRIPT_API):
     sys.path.append(RESOLVE_SCRIPT_API)
 
 # Configuration
-EXPORT_PATH = "/Users/mathieucourchesne/exports_from_davinci"
+# Le dossier "new" est surveillé par auto_watch.py
+EXPORT_PATH = "/Users/mathieucourchesne/exports_from_davinci/new"
 RENDER_PRESET_NAME = "Pipeline Export" # Optional: if you have a preset
 RENDER_FORMAT = "mp4"
 RENDER_CODEC = "H264"
