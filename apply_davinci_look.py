@@ -65,7 +65,6 @@ def main():
                          result = media_pool_item.ApplyGradeFromDRX(BASE_LOOK_PATH, 1)
 
                 # ESSAI 3 : Méthode Gallery (La plus robuste si le fichier ne passe pas)
-                # Nécessite que le DRX soit déjà dans la galerie, un peu complexe à scripter sans Gallery API
                 
                 if not result:
                     print(f"⚠️ Échec : Impossible d'appliquer le grade sur {item.GetName()}.")
