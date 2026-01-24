@@ -1,5 +1,23 @@
 [
   {
+    "id": "solo-armpit",
+    "captions": [
+      "fr",
+      "en"
+    ],
+    "formats_generated": [
+      "16x9",
+      "9x16",
+      "1x1"
+    ],
+    "bunny_urls": {
+      "16x9": "https://vz-72668a20-6b9.b-cdn.net/6c4645e2-15f2-466e-93f1-3d338558cd34/play_720p.mp4",
+      "9x16": "https://vz-72668a20-6b9.b-cdn.net/d290f8e6-458a-47f0-95a6-c26ef82c8fa0/play_720p.mp4",
+      "1x1": "https://vz-72668a20-6b9.b-cdn.net/f98eb125-b817-4b56-b20d-bac926316bf9/play_720p.mp4"
+    },
+    "updated_at": "2026-01-24T14:47:19.310584Z"
+  },
+  {
     "id": "Pont de fourrure",
     "captions": [
       "fr",
