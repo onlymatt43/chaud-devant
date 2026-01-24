@@ -2,9 +2,9 @@ import os
 import sys
 
 # Configuration
-# Le chemin vers votre fichier de "Grade" exporté (.drx)
-# Vous devez créer ce fichier une fois dans DaVinci (Grab Still -> Export)
-BASE_LOOK_PATH = os.path.join(os.path.dirname(__file__), "templates", "base_look.drx")
+# Chemin absolu vers le projet (plus robuste dans DaVinci)
+PROJECT_ROOT = "/Users/mathieucourchesne/chaud-devant"
+BASE_LOOK_PATH = os.path.join(PROJECT_ROOT, "templates", "base_look.drx")
 
 def get_resolve():
     try:
