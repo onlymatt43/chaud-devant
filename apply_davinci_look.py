@@ -52,14 +52,19 @@ def main():
                 result = False
                 
                 # ESSAI 1 : Méthode Standard TimelineItem
-                if hasattr(item, "ApplyGradeFromDRX"):
+                # On vérifie que la méthode existe ET qu'elle n'est pas None (Piège DaVinci)
+                if hasattr(item, "ApplyGradeFromDRX") and item.ApplyGradeFromDRX is not None:
                     print("👉 Essai 1 : TimelineItem.ApplyGradeFromDRX")
-                    result = item.ApplyGradeFromDRX(BASE_LOOK_PATH, 1) # 1 = Wipe (Replace)
+                    try:
+                        result = item.ApplyGradeFromDRX(BASE_LOOK_PATH, 1) # 1 = Wipe (Replace)
+                    except TypeError:
+                        print("❌ Essai 1 échoué (Non appelable)")
+                        result = False
 
-                # ESSAI 2 : Méthode MediaPoolItem (Si Essai 1 échoue)
+                # ESSAI 2 : Méthode MediaPoolItem (Si Essai 1 échoue ou méthode absente)
                 if not result:
                      media_pool_item = item.GetMediaPoolItem()
-                     if media_pool_item and hasattr(media_pool_item, "ApplyGradeFromDRX"):
+                     if media_pool_item and hasattr(media_pool_item, "ApplyGradeFromDRX") and media_pool_item.ApplyGradeFromDRX is not None:
                          print("👉 Essai 2 : MediaPoolItem.ApplyGradeFromDRX")
                          # Attention: ceci change le clip source (donc toutes ses instances)
                          result = media_pool_item.ApplyGradeFromDRX(BASE_LOOK_PATH, 1)
