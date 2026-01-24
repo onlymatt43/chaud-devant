@@ -53,14 +53,22 @@ def main():
                 # DIAGNOSTIC POUR DAVINCI 20
                 if not hasattr(item, "ApplyGradeFromDRX") or item.ApplyGradeFromDRX is None:
                     print(f"⚠️ La commande 'ApplyGradeFromDRX' n'est pas disponible pour ce clip.")
-                    # On tente une méthode alternative si elle existe (ex: LoadGradeFromDRX)
+                    # On tente une méthode alternative si elle existe
                     if hasattr(item, "LoadGradeFromDRX") and item.LoadGradeFromDRX:
                         print(f"👉 Tentative avec LoadGradeFromDRX (Alternative)...")
                         result = item.LoadGradeFromDRX(BASE_LOOK_PATH, 1)
                     else:
-                        # On affiche ce qui est possible pour aider à debug
-                        print("🛠 Méthodes disponibles (extrait): ", [m for m in dir(item) if 'Grade' in m])
-                        continue
+                        # DIAGNOSTIC COMPLET (DUMP)
+                        debug_file = os.path.join(PROJECT_ROOT, "debug_methods.txt")
+                        with open(debug_file, "w") as df:
+                            df.write(f"Type de l'objet item: {type(item)}\n")
+                            df.write("Méthodes disponibles:\n")
+                            for method in dir(item):
+                                df.write(f"{method}\n")
+                        
+                        print(f"🛑 ÉCHEC. Liste des commandes sauvegardée dans : {debug_file}")
+                        print("👉 Veuillez me copier le contenu de ce fichier ou me dire s'il contient 'Apply' ou 'Still'.")
+                        return # On arrête tout de suite pour ne pas spammer
                 else:
                     # Méthode standard
                     result = item.ApplyGradeFromDRX(BASE_LOOK_PATH, 1)
