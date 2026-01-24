@@ -1,5 +1,23 @@
 [
   {
+    "id": "drinking",
+    "captions": [
+      "fr",
+      "en"
+    ],
+    "formats_generated": [
+      "16x9",
+      "9x16",
+      "1x1"
+    ],
+    "bunny_urls": {
+      "16x9": "https://vz-72668a20-6b9.b-cdn.net/3893c91a-ac41-44af-b883-9d550b6b5a6f/play_720p.mp4",
+      "9x16": "https://vz-72668a20-6b9.b-cdn.net/72647c68-354e-4b91-83f0-8f698437337b/play_720p.mp4",
+      "1x1": "https://vz-72668a20-6b9.b-cdn.net/57c69bc6-dd4c-4d42-8a29-0ee92c674f49/play_720p.mp4"
+    },
+    "updated_at": "2026-01-24T20:56:11.685490Z"
+  },
+  {
     "id": "solo-armpit",
     "captions": [
       "fr",
