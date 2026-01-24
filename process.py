@@ -212,10 +212,18 @@ def process(folder):
         output_file = out/"formats"/f"web_{k}.mp4"
         
         # Scaling Logic
-        # Mode "contain" (Défaut) : Fit within box + Pad (Bandes noires, tout est visible)
-        # Mode "cover" : Fill box + Crop (Plein écran, bords coupés)
+        # Mode "contain" : Bandes noires (Safe)
+        # Mode "cover" : Plein écran (Crop)
+        # Mode "auto" : Cover pour mobile (9x16, 1x1), Contain pour TV (16x9)
         
-        mode = cfg.get("resize_mode", "contain")
+        mode = cfg.get("resize_mode", "auto")
+        
+        if mode == "auto":
+            if k in ["9x16", "1x1"]:
+                mode = "cover"
+            else:
+                mode = "contain"
+
         w, h = scales[k].split(":")
         
         if mode == "cover":

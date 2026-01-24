@@ -11,7 +11,7 @@
     "enabled": true,
     "outro": "templates/outro.mp4"
   },
-  "resize_mode": "contain",
+  "resize_mode": "auto",
   "formats": {
     "16x9": true,
     "9x16": true,
