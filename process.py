@@ -211,11 +211,21 @@ def process(folder):
         
         output_file = out/"formats"/f"web_{k}.mp4"
         
-        # Smart scaling: Fit within box + Pad with black bars (No distortion)
-        # scale=w:h:force_original_aspect_ratio=decrease
-        # pad=w:h:(ow-iw)/2:(oh-ih)/2
+        # Scaling Logic
+        # Mode "contain" (Défaut) : Fit within box + Pad (Bandes noires, tout est visible)
+        # Mode "cover" : Fill box + Crop (Plein écran, bords coupés)
+        
+        mode = cfg.get("resize_mode", "contain")
         w, h = scales[k].split(":")
-        vf_filter = f"scale={w}:{h}:force_original_aspect_ratio=decrease,pad={w}:{h}:(ow-iw)/2:(oh-ih)/2,setsar=1"
+        
+        if mode == "cover":
+            # Increase = S'assure que le plus petit côté touche le bord (remplit tout)
+            # Crop = Coupe ce qui dépasse pour atteindre exactement w:h
+            vf_filter = f"scale={w}:{h}:force_original_aspect_ratio=increase,crop={w}:{h},setsar=1"
+        else:
+            # Decrease = S'assure que le plus grand côté touche le bord (rentre dedans)
+            # Pad = Ajoute du noir pour atteindre exactement w:h
+            vf_filter = f"scale={w}:{h}:force_original_aspect_ratio=decrease,pad={w}:{h}:(ow-iw)/2:(oh-ih)/2,setsar=1"
         
         ok=run([
             "ffmpeg","-y","-i",str(src),
