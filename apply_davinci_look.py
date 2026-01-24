@@ -68,13 +68,9 @@ def main():
                 
                 if not result:
                     print(f"⚠️ Échec : Impossible d'appliquer le grade sur {item.GetName()}.")
-                    # On évite le spam debug pour l'instant
                 else:
                     applied_count += 1
-                    print(f"✅ Grade appliqué avec succès !")
-                    print(f"✅ Grade appliqué sur : {item.GetName()}")
-                else:
-                    print(f"⚠️ Échec sur : {item.GetName()}")
+                    print(f"✅ Grade appliqué avec succès sur : {item.GetName()}")
 
     print(f"Terminé ! Look appliqué sur {applied_count} clips.")
     print("⚠️ N'oubliez pas de lancer l'analyse (Tracking) si vous avez des effets de Face Refinement.")
