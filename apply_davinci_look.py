@@ -8,10 +8,15 @@ BASE_LOOK_PATH = os.path.join(PROJECT_ROOT, "templates", "base_look.drx")
 
 def get_resolve():
     try:
-        import DaVinciResolveScript as bmd
-        return bmd.scriptapp("Resolve")
-    except ImportError:
-        return None
+        # 1. Essai standard (Fonctionne souvent dans la console interne)
+        return resolve
+    except NameError:
+        try:
+            # 2. Essai module (Fonctionne pour les scripts externes ou studio)
+            import DaVinciResolveScript as bmd
+            return bmd.scriptapp("Resolve")
+        except ImportError:
+            return None
 
 def main():
     resolve = get_resolve()
@@ -43,12 +48,22 @@ def main():
         for item in items:
             # On vérifie si c'est bien un clip vidéo (pas un titre ou un audio)
             if item.GetMediaPoolItem(): 
-                # Mode 1 = Copy Grade : Remplace le grade existant
-                # Mode 2 = Append Grade : Ajoute à la fin (Plus sûr si vous avez déjà travaillé)
-                # Malheureusement l'API Python est limitée ici, ApplyGradeFromDRX remplace souvent.
+                print(f"🔍 Analyse de : {item.GetName()}")
                 
-                # Astuce : On applique le DRX
-                result = item.ApplyGradeFromDRX(BASE_LOOK_PATH, 1)
+                # DIAGNOSTIC POUR DAVINCI 20
+                if not hasattr(item, "ApplyGradeFromDRX") or item.ApplyGradeFromDRX is None:
+                    print(f"⚠️ La commande 'ApplyGradeFromDRX' n'est pas disponible pour ce clip.")
+                    # On tente une méthode alternative si elle existe (ex: LoadGradeFromDRX)
+                    if hasattr(item, "LoadGradeFromDRX") and item.LoadGradeFromDRX:
+                        print(f"👉 Tentative avec LoadGradeFromDRX (Alternative)...")
+                        result = item.LoadGradeFromDRX(BASE_LOOK_PATH, 1)
+                    else:
+                        # On affiche ce qui est possible pour aider à debug
+                        print("🛠 Méthodes disponibles (extrait): ", [m for m in dir(item) if 'Grade' in m])
+                        continue
+                else:
+                    # Méthode standard
+                    result = item.ApplyGradeFromDRX(BASE_LOOK_PATH, 1)
                 
                 if result:
                     applied_count += 1
