@@ -49,32 +49,30 @@ def main():
             # On vérifie si c'est bien un clip vidéo (pas un titre ou un audio)
             if item.GetMediaPoolItem(): 
                 print(f"🔍 Analyse de : {item.GetName()}")
+                result = False
                 
-                # DIAGNOSTIC POUR DAVINCI 20
-                if not hasattr(item, "ApplyGradeFromDRX") or item.ApplyGradeFromDRX is None:
-                    print(f"⚠️ La commande 'ApplyGradeFromDRX' n'est pas disponible pour ce clip.")
-                    # On tente une méthode alternative si elle existe
-                    if hasattr(item, "LoadGradeFromDRX") and item.LoadGradeFromDRX:
-                        print(f"👉 Tentative avec LoadGradeFromDRX (Alternative)...")
-                        result = item.LoadGradeFromDRX(BASE_LOOK_PATH, 1)
-                    else:
-                        # DIAGNOSTIC COMPLET (DUMP)
-                        debug_file = os.path.join(PROJECT_ROOT, "debug_methods.txt")
-                        with open(debug_file, "w") as df:
-                            df.write(f"Type de l'objet item: {type(item)}\n")
-                            df.write("Méthodes disponibles:\n")
-                            for method in dir(item):
-                                df.write(f"{method}\n")
-                        
-                        print(f"🛑 ÉCHEC. Liste des commandes sauvegardée dans : {debug_file}")
-                        print("👉 Veuillez me copier le contenu de ce fichier ou me dire s'il contient 'Apply' ou 'Still'.")
-                        return # On arrête tout de suite pour ne pas spammer
+                # ESSAI 1 : Méthode Standard TimelineItem
+                if hasattr(item, "ApplyGradeFromDRX"):
+                    print("👉 Essai 1 : TimelineItem.ApplyGradeFromDRX")
+                    result = item.ApplyGradeFromDRX(BASE_LOOK_PATH, 1) # 1 = Wipe (Replace)
+
+                # ESSAI 2 : Méthode MediaPoolItem (Si Essai 1 échoue)
+                if not result:
+                     media_pool_item = item.GetMediaPoolItem()
+                     if media_pool_item and hasattr(media_pool_item, "ApplyGradeFromDRX"):
+                         print("👉 Essai 2 : MediaPoolItem.ApplyGradeFromDRX")
+                         # Attention: ceci change le clip source (donc toutes ses instances)
+                         result = media_pool_item.ApplyGradeFromDRX(BASE_LOOK_PATH, 1)
+
+                # ESSAI 3 : Méthode Gallery (La plus robuste si le fichier ne passe pas)
+                # Nécessite que le DRX soit déjà dans la galerie, un peu complexe à scripter sans Gallery API
+                
+                if not result:
+                    print(f"⚠️ Échec : Impossible d'appliquer le grade sur {item.GetName()}.")
+                    # On évite le spam debug pour l'instant
                 else:
-                    # Méthode standard
-                    result = item.ApplyGradeFromDRX(BASE_LOOK_PATH, 1)
-                
-                if result:
                     applied_count += 1
+                    print(f"✅ Grade appliqué avec succès !")
                     print(f"✅ Grade appliqué sur : {item.GetName()}")
                 else:
                     print(f"⚠️ Échec sur : {item.GetName()}")
