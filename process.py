@@ -202,6 +202,33 @@ def process(folder):
         st["branding"]="skipped"
 
     src=branded if branded.exists() else master
+
+    # --- DETECTION DU FORMAT ORIGINAL ---
+    # On analyse la source pour ne générer QUE le format qui correspond le mieux
+    # Cela évite de créer des versions "cropées" ou "paddées" inutiles
+    try:
+        cmd = ["ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries", "stream=width,height", "-of", "json", str(src)]
+        res = subprocess.run(cmd, capture_output=True, text=True)
+        meta = json.loads(res.stdout)["streams"][0]
+        w_src, h_src = int(meta["width"]), int(meta["height"])
+        ratio = w_src / h_src
+        
+        detected_fmt = "16x9"
+        if 0.9 <= ratio <= 1.1: detected_fmt = "1x1"    # Carré (approx)
+        elif ratio < 0.9:       detected_fmt = "9x16"   # Vertical
+        else:                   detected_fmt = "16x9"   # Horizontal
+        
+        print(f"📐 Source: {w_src}x{h_src} (Ratio {ratio:.2f}) -> On ne garde que : {detected_fmt}")
+        
+        # On force la config pour n'activer QUE ce format
+        cfg["formats"] = {
+            "16x9": (detected_fmt == "16x9"),
+            "9x16": (detected_fmt == "9x16"),
+            "1x1":  (detected_fmt == "1x1")
+        }
+    except Exception as e:
+        print(f"⚠️ Erreur détection format ({e}). On utilise la config standard.")
+        
     st.setdefault("formats",{})
     st.setdefault("bunny_urls",{})
     scales={"16x9":"1920:1080","9x16":"1080:1920","1x1":"1080:1080"}
