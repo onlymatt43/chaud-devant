@@ -107,10 +107,11 @@
 
         if (!videoUrl) return null;
 
+        // Ajout de #t=0.001 pour forcer l'affichage de la première frame (hack mobile/safari)
         card.innerHTML = `
             <div class="video-container paused">
-                <video loop playsinline muted preload="metadata">
-                    <source src="${videoUrl}" type="video/mp4">
+                <video loop playsinline muted preload="auto">
+                    <source src="${videoUrl}#t=0.001" type="video/mp4">
                 </video>
             </div>
         `;
@@ -135,7 +136,12 @@
         card.addEventListener('mouseenter', () => {
             if(video.paused) {
                 video.muted = true;
-                video.play().catch(()=>{});
+                const playPromise = video.play();
+                if (playPromise !== undefined) {
+                    playPromise.catch(() => {
+                        // Auto-play was prevented
+                    });
+                }
                 container.classList.remove('paused');
             }
         });
@@ -143,7 +149,8 @@
         card.addEventListener('mouseleave', () => {
              if(!video.paused) {
                  video.pause();
-                 video.currentTime = 0;
+                 // On NE remet PAS à 0 (video.currentTime = 0) car cela peut causer un écran noir
+                 // On laisse la vidéo figée sur l'image actuelle
                  container.classList.add('paused');
              }
         });
