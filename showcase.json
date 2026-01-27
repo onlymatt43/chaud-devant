@@ -1,5 +1,19 @@
 [
   {
+    "id": "solo-basement-talk",
+    "captions": [
+      "fr",
+      "en"
+    ],
+    "formats_generated": [
+      "9x16"
+    ],
+    "bunny_urls": {
+      "9x16": "https://vz-72668a20-6b9.b-cdn.net/0354fded-00a8-45c7-b422-3e55cdc6ef34/play_720p.mp4"
+    },
+    "updated_at": "2026-01-27T21:23:38.973740Z"
+  },
+  {
     "id": "TALKING-ABOUT-MEN-AT-PLAY",
     "captions": [
       "fr",
