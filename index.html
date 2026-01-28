@@ -83,6 +83,8 @@
     <!-- Vidéos ici -->
 </div>
 
+<script src="https://spread-it-enhanced.onrender.com/js/widget.js"></script>
+
 <script>
     const feed = document.getElementById('feed');
     let videosData = [];
@@ -160,11 +162,13 @@
 
     async function init() {
         try {
-            const response = await fetch('showcase.json');
+            // const response = await fetch('showcase.json');
+            // Utilisation de l'API pour avoir les données Bunny en temps réel
+            const response = await fetch('/api/get-videos');
             videosData = await response.json();
             
-            // Inverser pour avoir les récents en premier ?? Oui selon le code précédent
-            videosData.reverse().forEach(vid => {
+            // L'API renvoie déjà trié par date, mais on garde foreach
+            videosData.forEach(vid => {
                 const el = createSlide(vid);
                 if (el) feed.appendChild(el);
             });

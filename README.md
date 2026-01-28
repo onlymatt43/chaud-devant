@@ -4,14 +4,15 @@ Ce projet est une "machine de guerre" qui automatise tout le cycle de vie d'une 
 
 ## ✨ Fonctionnalités
 
-*   **Export DaVinci Automatique** : Script Python pour exporter la timeline active sans clic.
+*   **Double Pipeline (Public / Privé)** : Gestion séparée des projets publics (portfolio) et privés (clients/perso).
+*   **Export DaVinci Automatique** : Scripts Python dans Resolve pour exporter et relancer le watch en un clic.
 *   **Traitement Intelligent** :
     *   **Encodage** : Génération automatique des formats 16:9, 9:16 et 1:1.
-    *   **Audio Pro** 🎚️ : Denoise (réduction de bruit), Enhance Speech (boost vocal) et Normalisation (-16 LUFS) automatiques.
+    *   **Audio Pro** 🎚️ : Denoise, Enhance Speech et Normalisation (-16 LUFS) automatiques.
     *   **Branding** : Ajout automatique d'une outro (si configuré).
-*   **Hébergement Bunny.net** : Upload direct sur le CDN vidéo streaming.
+*   **Hébergement Bunny.net** : Upload sur la bonne librairie (Public ou Privé) automatiquement.
 *   **Déploiement Continu** 🚀 : Push automatique sur GitHub à la fin du traitement pour mettre à jour le site Vercel.
-*   **Bonus "Beat Sync"** 🎵 : Un outil séparé pour caler des coupures vidéo sur le rythme d'une musique.
+*   **Gestion des versions** : Si un projet existe déjà, il crée automatiquement une `_v2`, `_v3`, etc.
 
 ---
 
@@ -21,40 +22,44 @@ Ce projet est une "machine de guerre" qui automatise tout le cycle de vie d'une 
 2.  **Dépendances** :
     ```bash
     pip install -r requirements.txt
-    pip install moviepy librosa soundfile openpyxl
     ```
 3.  **Variables `.env`** :
     Créez un fichier `.env` avec vos accès Bunny.net :
     ```ini
-    BUNNY_LIBRARY_ID=581630
-    BUNNY_ACCESS_KEY=7b43d3...
+    BUNNY_LIBRARY_ID=123456
+    BUNNY_ACCESS_KEY=abcd-1234...
     ```
 
 ---
 
 ## 🚦 Le Pipeline Principal
 
-### 1. Export depuis DaVinci
-Dans DaVinci Resolve : `Workspace > Scripts > Comp > davinci_export_pipeline`
-*   Cela exporte la timeline courante dans `~/exports_from_davinci`.
-
-### 2. Le Watchdog (`auto_watch.py`)
-Ce script doit tourner en arrière-plan sur votre Mac. Il surveille le dossier d'export.
+### 1. Le Watchdog (Démarrage)
+Tout commence ici. Lancez ce script pour surveiller les dossiers d'export.
+Double-cliquez sur **`start_watcher.command`** ou exécutez :
 ```bash
-python3 auto_watch.py
+./start_watcher.command
 ```
-Dès qu'un fichier arrive :
-1.  Il le déplace dans `production/`.
-2.  Il lance `process.py`.
-3.  Il améliore le son, encode les vidéos, et upload sur Bunny.
-4.  Il met à jour `showcase.json`.
-5.  Il fait un `git push` pour mettre à jour le site web.
+Cela ouvre un terminal qui surveille :
+*   `~/exports_from_davinci/new` (Public)
+*   `~/exports_from_davinci/private` (Privé)
 
-### 3. Le Site Web
-Le fichier `index.html` est votre vitrine.
-*   Design style "Macaron" / Badges ronds.
-*   Thème clair animé.
-*   Lecture directe MP4 optimisée.
+### 2. Export depuis DaVinci
+Dans DaVinci Resolve : `Workspace > Scripts > Comp > ...`
+
+*   **`Export_PUBLIC`** : Exporte la timeline vers le dossier public. Applique la config par défaut.
+*   **`Export_PRIVATE`** : Exporte vers le dossier privé. Applique la config privée (pas publiée sur le site principal).
+
+*Le script DaVinci redémarre automatiquement le Watchdog s'il était éteint.*
+
+### 3. Traitement (`process.py`)
+Dès qu'un fichier arrive :
+1.  Il est déplacé dans `production/` (avec gestion de version si doublon).
+2.  L'audio est nettoyé et normalisé.
+3.  Les sous-titres sont générés (Whisper).
+4.  Les formats vidéo sont encodés.
+5.  Les fichiers sont envoyés sur **Bunny.net** (Librairie Public ou Privé selon la source).
+6.  Le fichier `inventory` et le site web sont mis à jour (Git Push).
 
 ---
 
@@ -71,28 +76,16 @@ Pour créer des montages "glitch" qui changent de plan à chaque note de musique
 
 ## 🧹 Maintenance & Outils
 
-*   **`regenerate_all.py`** : Relance le traitement (audio + vidéo) sur tous les dossiers existants dans `production/`.
-*   **`fix_configs.py`** : Met à jour les fichiers de config de tous les projets avec les derniers réglages (audio, clés API).
-*   **`sync_bunny_library.py`** : Compare votre dossier local avec Bunny.net et supprime les vidéos orphelines en ligne.
+*   **`start_watcher.command`** : Le lanceur principal (à utiliser tout le temps).
+*   **`regenerate_all.py`** : Relance le traitement sur tous les dossiers existants dans `production/`.
 *   **`delete_video.py`** : Pour supprimer proprement un projet (local + remote).
+*   **`logs/startup.log`** : Vérifiez ce fichier dans chaque projet si le traitement ne semble pas démarrer.
 
 ---
 
-## ⚙️ Configuration (`config.default.json`)
+## ⚙️ Configuration
 
-Vous pouvez ajuster les réglages par défaut ici :
-```json
-{
-  "audio": {
-    "enabled": true,
-    "denoise": true,     // Réduction de bruit
-    "enhance_speech": true, // EQ + Compression voix
-    "normalize": true    // Standard web -16 LUFS
-  },
-  "formats": {
-    "16x9": true,
-    "9x16": true,
-    "1x1": true
-  }
-}
-```
+*   **`config.default.json`** : Configuration pour les exports **Publics**.
+*   **`config.private.json`** : Configuration pour les exports **Privés** (Library ID différent, options différentes).
+
+Vous pouvez ajuster les réglages (audio, formats) dans ces fichiers.

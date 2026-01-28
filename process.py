@@ -86,8 +86,9 @@ def run(cmd, log, step, retries=0, backoff=[5,30,120]):
             time.sleep(backoff[min(a,len(backoff)-1)])
             a+=1
 
-def update_global_showcase(new_inv, root_path):
-    showcase_path = root_path / "showcase.json"
+def update_global_showcase(new_inv, root_path, is_private=False):
+    filename = "showcase_private.json" if is_private else "showcase.json"
+    showcase_path = root_path / filename
     showcase = load_json(showcase_path, [])
     # Remove existing entry with same ID and add new one at the top
     showcase = [item for item in showcase if item.get("id") != new_inv["id"]]
@@ -109,12 +110,12 @@ def process(folder):
 
     st=load_json(f/"status.json",{})
 
-    # Injection des secrets depuis l'environnement
+    # Injection des secrets depuis l'environnement (seulement si pas déjà défini dans la config)
     if "bunny_stream" not in cfg: cfg["bunny_stream"] = {}
     bunny_stream_cfg = cfg.get("bunny_stream", {})
-    if os.getenv("BUNNY_LIBRARY_ID"):
+    if os.getenv("BUNNY_LIBRARY_ID") and not bunny_stream_cfg.get("library_id"):
         bunny_stream_cfg["library_id"] = os.getenv("BUNNY_LIBRARY_ID")
-    if os.getenv("BUNNY_ACCESS_KEY"):
+    if os.getenv("BUNNY_ACCESS_KEY") and not bunny_stream_cfg.get("access_key"):
         bunny_stream_cfg["access_key"] = os.getenv("BUNNY_ACCESS_KEY")
     if bunny_stream_cfg: cfg["bunny_stream"] = bunny_stream_cfg
 
@@ -304,14 +305,15 @@ def process(folder):
     save_json(f/"status.json",st)
     
     # Update central showcase
-    update_global_showcase(inv, Path(__file__).parent)
+    update_global_showcase(inv, Path(__file__).parent, is_private=cfg.get("private", False))
 
     # AUTO-DEPLOY : Git Push to trigger Vercel
     root_path = Path(__file__).parent
     try:
         print("🔄 Sync Vercel (Git Push)...")
         # On ajoute seulement showcase.json pour éviter de commit des trucs temporaires
-        subprocess.run(["git", "add", "showcase.json"], cwd=root_path, check=False, stdout=subprocess.DEVNULL)
+        showcase_file = "showcase_private.json" if cfg.get("private") else "showcase.json"
+        subprocess.run(["git", "add", showcase_file], cwd=root_path, check=False, stdout=subprocess.DEVNULL)
         # On commit si y'a des changements
         subprocess.run(["git", "commit", "-m", f"update: showcase {inv.get('id', 'video')}"], cwd=root_path, check=False, stdout=subprocess.DEVNULL)
         # On pousse
