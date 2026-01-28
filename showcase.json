@@ -1,5 +1,19 @@
 [
   {
+    "id": "solo-basement-talk_v2",
+    "captions": [
+      "fr",
+      "en"
+    ],
+    "formats_generated": [
+      "9x16"
+    ],
+    "bunny_urls": {
+      "9x16": "https://vz-72668a20-6b9.b-cdn.net/3746ee0d-aca1-4922-b9ed-fcb7098f9bde/play_720p.mp4"
+    },
+    "updated_at": "2026-01-28T17:11:19.941161Z"
+  },
+  {
     "id": "quick-suit-and-tie-men-at-play-shooting",
     "captions": [
       "fr",
@@ -110,20 +124,6 @@
       "9x16": "https://vz-72668a20-6b9.b-cdn.net/254382e8-881f-43e3-9126-afc236f9997d/play_720p.mp4"
     },
     "updated_at": "2026-01-28T02:53:36.833811Z"
-  },
-  {
-    "id": "solo-basement-talk_v2",
-    "captions": [
-      "fr",
-      "en"
-    ],
-    "formats_generated": [
-      "9x16"
-    ],
-    "bunny_urls": {
-      "9x16": "https://vz-72668a20-6b9.b-cdn.net/0271ae71-2296-4676-a000-d5e0fbc4d780/play_720p.mp4"
-    },
-    "updated_at": "2026-01-28T02:51:56.362304Z"
   },
   {
     "id": "seems-like-talking-but-not-clip",
