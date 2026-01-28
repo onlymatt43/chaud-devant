@@ -1,5 +1,19 @@
 [
   {
+    "id": "solo-basement-talk_v2",
+    "captions": [
+      "fr",
+      "en"
+    ],
+    "formats_generated": [
+      "9x16"
+    ],
+    "bunny_urls": {
+      "9x16": "https://vz-72668a20-6b9.b-cdn.net/0271ae71-2296-4676-a000-d5e0fbc4d780/play_720p.mp4"
+    },
+    "updated_at": "2026-01-28T02:51:56.362304Z"
+  },
+  {
     "id": "quick-suit-and-tie-men-at-play-shooting",
     "captions": [
       "fr",
