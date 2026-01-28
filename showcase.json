@@ -1,5 +1,19 @@
 [
   {
+    "id": "MADRID-HOME",
+    "captions": [
+      "fr",
+      "en"
+    ],
+    "formats_generated": [
+      "9x16"
+    ],
+    "bunny_urls": {
+      "9x16": "https://vz-72668a20-6b9.b-cdn.net/596bb60c-4c20-45f9-a0f7-52ae432d707d/play_720p.mp4"
+    },
+    "updated_at": "2026-01-28T17:05:20.442253Z"
+  },
+  {
     "id": "white-pants-clip",
     "captions": [
       "fr",
