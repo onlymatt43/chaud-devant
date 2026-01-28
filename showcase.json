@@ -1,5 +1,19 @@
 [
   {
+    "id": "TRITON-MUSIC",
+    "captions": [
+      "fr",
+      "en"
+    ],
+    "formats_generated": [
+      "9x16"
+    ],
+    "bunny_urls": {
+      "9x16": "https://vz-72668a20-6b9.b-cdn.net/79d99b8d-ab49-46da-ae6f-79f0f4864230/play_720p.mp4"
+    },
+    "updated_at": "2026-01-28T17:06:42.466204Z"
+  },
+  {
     "id": "MADRID-HOME",
     "captions": [
       "fr",
@@ -124,19 +138,5 @@
       "16x9": "https://vz-72668a20-6b9.b-cdn.net/b7f98421-c344-4d53-8931-b428731c067a/play_720p.mp4"
     },
     "updated_at": "2026-01-27T04:37:29.091316Z"
-  },
-  {
-    "id": "TRITON-MUSIC",
-    "captions": [
-      "fr",
-      "en"
-    ],
-    "formats_generated": [
-      "9x16"
-    ],
-    "bunny_urls": {
-      "9x16": "https://vz-72668a20-6b9.b-cdn.net/884f3604-abab-4bba-9d52-d3663b928d5b/play_720p.mp4"
-    },
-    "updated_at": "2026-01-27T00:01:39.305615Z"
   }
 ]
