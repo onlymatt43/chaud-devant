@@ -1,5 +1,19 @@
 [
   {
+    "id": "solo-basement-talk",
+    "captions": [
+      "fr",
+      "en"
+    ],
+    "formats_generated": [
+      "9x16"
+    ],
+    "bunny_urls": {
+      "9x16": "https://vz-c69f4e3f-963.b-cdn.net/2ebfdaa0-ba12-45c8-b785-083ccaf705b4/play_720p.mp4"
+    },
+    "updated_at": "2026-01-28T01:12:41.227871Z"
+  },
+  {
     "id": "talking-basement",
     "captions": [
       "fr",
