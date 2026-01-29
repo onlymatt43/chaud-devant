@@ -1,66 +1,23 @@
 const crypto = require('crypto');
 const { createClient } = require('@libsql/client');
+const { authenticator } = require('otplib');
 
 // CONFIGURATION
 const BUNNY_PRIVATE_KEY = process.env.BUNNY_TOKEN_KEY;
 // Fallback sur la clé maître si la DB n'est pas configurée
 const MASTER_TOTP_KEY = process.env.TOTP_SECRET_KEY || "JBSWY3DPEHPK3PXP"; 
 
-// CONNEXION TURSO (Si les vars existent)
+// CONNEXION TURSO (Optimisé pour Serverless HTTP)
 let db = null;
 if (process.env.TURSO_DB_URL && process.env.TURSO_DB_TOKEN) {
-    db = createClient({
-        url: process.env.TURSO_DB_URL,
-        authToken: process.env.TURSO_DB_TOKEN,
-    });
-}
-
-// ... (Fonctions TOTP inchangées) ...
-function getTOTP(secret) {
-    try {
-        const key = Buffer.from(base32tohex(secret), 'hex');
-        const epoch = Math.round(new Date().getTime() / 1000.0);
-        const time = Buffer.alloc(8);
-        let counter = Math.floor(epoch / 30);
-        
-        time.writeUInt32BE(0, 0);
-        time.writeUInt32BE(counter, 4);
-
-        const hmac = crypto.createHmac('sha1', key);
-        hmac.update(time);
-        const h = hmac.digest();
-
-        const offset = h[h.length - 1] & 0xf;
-        const v = (h[offset] & 0x7f) << 24 |
-                (h[offset + 1] & 0xff) << 16 |
-                (h[offset + 2] & 0xff) << 8 |
-                (h[offset + 3] & 0xff);
-
-        let code = (v % 1000000).toString();
-        return code.padStart(6, '0');
-    } catch (e) {
-        console.error("Erreur calcul TOTP pour secret:", secret, e);
-        return "000000";
-    }
-}
-
-function base32tohex(base32) {
-    const base32chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
-    let bits = "";
-    let hex = "";
-    // Clean string
-    base32 = base32.replace(/=/g, "").toUpperCase();
+    // Force HTTP pour Vercel pour éviter les soucis de WebSocket
+    const url = process.env.TURSO_DB_URL.replace('libsql://', 'https://');
     
-    for (let i = 0; i < base32.length; i++) {
-        const val = base32chars.indexOf(base32.charAt(i));
-        if (val === -1) throw new Error("Invalid Base32 character: " + base32.charAt(i));
-        bits += val.toString(2).padStart(5, '0');
-    }
-    for (let i = 0; i + 4 <= bits.length; i += 4) {
-        const chunk = bits.substr(i, 4);
-        hex = hex + parseInt(chunk, 2).toString(16);
-    }
-    return hex;
+    db = createClient({
+        url: url,
+        authToken: process.env.TURSO_DB_TOKEN,
+        intMode: 'bigint' // Prévention erreur 400
+    });
 }
 
 // Fonction pour récupérer les secrets actifs depuis Turso
@@ -76,10 +33,12 @@ async function getActiveSecrets() {
             // On suppose une table 'users' avec une colonne 'totp_secret'
             const result = await db.execute("SELECT totp_secret FROM users WHERE active = 1");
             result.rows.forEach(row => {
-                if(row.totp_secret) secrets.push({ type: 'USER', secret: row.totp_secret });
+                // Gestion des types retournés par intMode: bigint
+                const secret = row.totp_secret; 
+                if(secret) secrets.push({ type: 'USER', secret: String(secret) });
             });
         } catch (e) {
-            console.error("Erreur lecture DB Turso:", e);
+            console.error("Erreur lecture DB Turso (Vercel):", e);
         }
     }
     return secrets;
@@ -112,16 +71,21 @@ module.exports = async (req, res) => {
 
         let authorized = false;
 
-        // 3. BRUTEFORCE CHECK (On cherche "QUI" a généré ce code)
-        // Pour < 1000 users, c'est instantané.
+        // 3. CHECK (otplib gère la fenêtre de temps et la crypto correctement)
+        authenticator.options = { window: 1 }; // Tolérance +/- 30s
+        
         for (const entry of activeSecrets) {
-            const validCode = getTOTP(entry.secret);
-            
-            // TODO: Ajouter vérification +/- 30s pour tolérance
-            if (code === validCode) {
-                authorized = true;
-                console.log(`Accès autorisé via clé ${entry.type}`);
-                break; // Trouvé !
+            try {
+                // Vérifie le token avec otplib
+                const isValid = authenticator.check(code, entry.secret);
+                
+                if (isValid) {
+                    authorized = true;
+                    console.log(`Accès autorisé via clé ${entry.type}`);
+                    break; 
+                }
+            } catch (err) {
+                console.warn(`Erreur vérif secret ${entry.type}:`, err.message);
             }
         }
 
