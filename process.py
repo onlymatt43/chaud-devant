@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import json, subprocess, datetime, time, requests, os
+import json, subprocess, datetime, time, requests, os, shutil
 from pathlib import Path
 import pandas as pd
 from dotenv import load_dotenv
@@ -45,14 +45,34 @@ def bunny_stream_upload(file_path, stream_cfg, log, title=None):
     if not stream_cfg: return None
     try:
         headers = {"AccessKey": stream_cfg["access_key"], "Content-Type": "application/json"}
-        # 1. Créer l'entrée vidéo (Utilise le titre du projet si fourni)
         video_title = title if title else file_path.name
-        create_url = f"https://video.bunnycdn.com/library/{stream_cfg['library_id']}/videos"
-        resp = requests.post(create_url, headers=headers, json={"title": video_title})
-        video_id = resp.json()["guid"]
+        lib_id = stream_cfg['library_id']
+        
+        # 1. Chercher si la vidéo existe déjà pour éviter les doublons
+        search_url = f"https://video.bunnycdn.com/library/{lib_id}/videos?search={video_title}"
+        search_resp = requests.get(search_url, headers=headers)
+        
+        video_id = None
+        if search_resp.status_code == 200:
+            items = search_resp.json().get("items", [])
+            # On cherche une correspondance exacte du titre
+            for item in items:
+                if item["title"] == video_title:
+                    video_id = item["guid"]
+                    print(f"   ℹ️ Vidéo existante trouvée sur Bunny: {video_id}")
+                    break
+        
+        # 2. Si pas trouvée, on crée. Sinon on garde l'ID pour Update.
+        if not video_id:
+            create_url = f"https://video.bunnycdn.com/library/{lib_id}/videos"
+            resp = requests.post(create_url, headers=headers, json={"title": video_title})
+            if resp.status_code != 200:
+                print(f"❌ Erreur création Bunny: {resp.text}")
+                return None
+            video_id = resp.json()["guid"]
 
-        # 2. Upload du fichier
-        upload_url = f"https://video.bunnycdn.com/library/{stream_cfg['library_id']}/videos/{video_id}"
+        # 3. Upload du fichier (PUT remplace le fichier existant si même ID)
+        upload_url = f"https://video.bunnycdn.com/library/{lib_id}/videos/{video_id}"
         with open(file_path, "rb") as f:
             t = time.time()
             requests.put(upload_url, headers={"AccessKey": stream_cfg["access_key"]}, data=f)
@@ -72,7 +92,28 @@ def bunny_stream_upload(file_path, stream_cfg, log, title=None):
         log_event(log, {"step": "bunny_stream", "file": file_path.name, "status": "fail", "err": str(e)})
         return None
 
+def get_tool_path(tool_name):
+    # Try system PATH first
+    path = shutil.which(tool_name)
+    if path: return path
+    
+    # Common locations on macOS
+    common_paths = [
+        f"/opt/homebrew/bin/{tool_name}",
+        f"/usr/local/bin/{tool_name}",
+        f"/usr/bin/{tool_name}",
+        f"/Library/Frameworks/Python.framework/Versions/3.13/bin/{tool_name}"  # Added for whisper
+    ]
+    for p in common_paths:
+        if os.path.exists(p):
+            return p
+            
+    return tool_name
+
 def run(cmd, log, step, retries=0, backoff=[5,30,120]):
+    # Ensure tool path is absolute if possible
+    cmd[0] = get_tool_path(cmd[0])
+
     a=0
     while True:
         try:
@@ -206,10 +247,9 @@ def process(folder):
 
     # --- DETECTION DU FORMAT ORIGINAL ---
     # On analyse la source pour ne générer QUE le format qui correspond le mieux
-    # Cela évite de créer des versions "cropées" ou "paddées" inutiles
     try:
-        cmd = ["ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries", "stream=width,height", "-of", "json", str(src)]
-        res = subprocess.run(cmd, capture_output=True, text=True)
+        ffprobe_cmd = [get_tool_path("ffprobe"), "-v", "error", "-select_streams", "v:0", "-show_entries", "stream=width,height", "-of", "json", str(src)]
+        res = subprocess.run(ffprobe_cmd, capture_output=True, text=True)
         meta = json.loads(res.stdout)["streams"][0]
         w_src, h_src = int(meta["width"]), int(meta["height"])
         ratio = w_src / h_src
