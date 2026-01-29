@@ -90,6 +90,12 @@
         .lock-icon {
             font-size: 40px;
         }
+        .lock-video {
+            width: 80%; /* Ajustable selon la taille voulue */
+            max-width: 300px;
+            mix-blend-mode: multiply;
+            opacity: 0.8; /* "Juste un peu au travers" */
+        }
 
         /* Modal Backdrop */
         #access-modal {
@@ -288,7 +294,12 @@
 
         let lockHtml = '';
         if (isLocked) {
-            lockHtml = `<div class="locked-overlay"><div class="lock-icon">🔒</div></div>`;
+            // Remplace le cadenas par la vidéo 'untitled.mp4' en mode multiply
+            lockHtml = `
+                <div class="locked-overlay">
+                    <video src="untitled.mp4" autoplay loop muted playsinline class="lock-video"></video>
+                </div>
+            `;
         }
 
         card.innerHTML = `
