@@ -1,0 +1,12 @@
+{
+  "name": "chaud-devant-web",
+  "version": "1.0.0",
+  "description": "Video Showcase with Turso Auth",
+  "main": "index.html",
+  "dependencies": {
+    "@libsql/client": "^0.6.0",
+    "dotenv": "^16.4.5",
+    "otplib": "^13.2.1",
+    "qrcode-terminal": "^0.12.0"
+  }
+}
