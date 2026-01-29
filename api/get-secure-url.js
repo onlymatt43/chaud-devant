@@ -3,7 +3,8 @@ const { createClient } = require('@libsql/client');
 const { authenticator } = require('otplib');
 
 // CONFIGURATION
-const BUNNY_PRIVATE_KEY = process.env.BUNNY_TOKEN_KEY;
+// Tentative de récupération de la clé de signature (Token Authentication Key ou Access Key)
+const BUNNY_PRIVATE_KEY = process.env.BUNNY_TOKEN_KEY || process.env.BUNNY_ACCESS_KEY;
 // Fallback sur la clé maître si la DB n'est pas configurée
 const MASTER_TOTP_KEY = process.env.TOTP_SECRET_KEY || "JBSWY3DPEHPK3PXP"; 
 
@@ -101,7 +102,11 @@ module.exports = async (req, res) => {
         return res.status(200).json({ success: true, url: signedUrl });
 
     } catch (error) {
-        console.error(error);
-        return res.status(500).json({ error: 'Internal Server Error' });
+        console.error("API CRASH:", error);
+        return res.status(500).json({ 
+            error: 'Internal Server Error', 
+            details: error.message,
+            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        });
     }
 };
