@@ -201,8 +201,8 @@
     let currentLockedVideo = null; // Stocke la vidéo en cours de tentative
 
     // Gestion de la Modal
-    function openModal(videoData, cardElement) {
-        currentLockedVideo = { data: videoData, card: cardElement };
+    function openModal(videoData, cardElement, guid) {
+        currentLockedVideo = { data: videoData, card: cardElement, guid: guid };
         modal.style.display = 'flex';
         codeInput.value = '';
         errorMsg.style.display = 'none';
@@ -225,7 +225,7 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
                     code: code, 
-                    videoId: currentLockedVideo.data.id // ID pour Bunny
+                    videoId: currentLockedVideo.guid // On utilise le GUID spécifique (Bunny needs Video ID)
                 })
             });
             
@@ -258,18 +258,20 @@
         const video = card.querySelector('video');
         
         // Si l'API nous a donné une URL signée, on l'utilise.
-        // Sinon (pour le test public), on laisse l'URL actuelle mais on permet le play.
         if (newUrl) {
-            // video.src = newUrl; // Désactivé pour le test "Video Publique + Cadenas Virtuel"
-            // Pour le moment, on garde la source actuelle, on retire juste le blocage.
+            video.src = newUrl;
+            video.load(); // Important pour recharger la source
         }
 
         // Marque comme débloqué
         card.dataset.locked = "false";
         
         // Auto play
+        const playPromise = video.play();
+        if (playPromise !== undefined) {
+             playPromise.catch(error => console.log("Auto-play prevented:", error));
+        }
         video.muted = false;
-        video.play();
         card.querySelector('.video-container').classList.remove('paused');
     }
 
@@ -277,26 +279,39 @@
         const card = document.createElement('div');
         card.className = 'video-card';
         
-        // --- TEST: On verrouille arbitrairement la PREMIÈRE vidéo pour tester ---
-        const isLocked = (index === 0); 
+        // --- SECURE MODE: Utilise les données de l'API ---
+        const isLocked = videoInfo.locked === true; 
         card.dataset.locked = isLocked ? "true" : "false";
 
         // --- LOGIQUE INTELLIGENTE (RESPONSIVE) ---
         const isMobile = window.innerHeight > window.innerWidth;
+        const formatPriority = isMobile ? ['9x16', '1x1', '16x9'] : ['16x9', '1x1', '9x16'];
+        
+        let targetFormat = null;
         let videoUrl = null;
-        if (isMobile) {
-            videoUrl = videoInfo.bunny_urls['9x16'] || videoInfo.bunny_urls['1x1'] || videoInfo.bunny_urls['16x9'];
-        } else {
-            videoUrl = videoInfo.bunny_urls['16x9'] || videoInfo.bunny_urls['1x1'] || videoInfo.bunny_urls['9x16'];
+        
+        // On cherche le meilleur format disponible
+        if (videoInfo.bunny_urls) {
+            for (const fmt of formatPriority) {
+                if (videoInfo.bunny_urls[fmt]) {
+                    targetFormat = fmt;
+                    videoUrl = videoInfo.bunny_urls[fmt];
+                    break;
+                }
+            }
         }
 
         if (!videoUrl) return null;
 
+        // Récupère le GUID correspondant au format choisi (pour l'API de déverrouillage)
+        const targetGuid = videoInfo.guids ? videoInfo.guids[targetFormat] : null;
+
         let lockHtml = '';
         if (isLocked) {
             // Remplace le cadenas par la vidéo 'untitled.mp4' en mode multiply
+            // On enlève le fond noir (background: transparent) pour bien voir à travers
             lockHtml = `
-                <div class="locked-overlay">
+                <div class="locked-overlay" style="background: transparent;">
                     <video src="untitled.mp4" autoplay loop muted playsinline class="lock-video"></video>
                 </div>
             `;
@@ -320,7 +335,8 @@
              if (card.dataset.locked === "true") {
                  e.preventDefault();
                  e.stopPropagation();
-                 openModal(videoInfo, card);
+                 // On passe le GUID spécifique au format affiché
+                 openModal(videoInfo, card, targetGuid);
                  return;
              }
 
@@ -334,10 +350,9 @@
         });
         
         // Mouse enter pour autoplay (Preview)
-        // On désactive la preview sur les vidéos lockées pour ne rien spoiler
         card.addEventListener('mouseenter', () => {
-            if (card.dataset.locked === "true") return; 
-
+            // On joue la vidéo même verrouillée pour permettre l'effet "transparence"
+            
             if(video.paused) {
                 video.muted = true;
                 const playPromise = video.play();
@@ -347,8 +362,6 @@
         });
 
         card.addEventListener('mouseleave', () => {
-             if (card.dataset.locked === "true") return;
-
              if(!video.paused) {
                  video.pause();
                  container.classList.add('paused');

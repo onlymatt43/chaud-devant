@@ -50,10 +50,14 @@ function base32tohex(base32) {
 // Fonction signature Bunny
 function signBunnyUrl(videoId, securityKey) {
     const expires = Math.floor(Date.now() / 1000) + 3600; // +1 heure
-    const path = `/${videoId}/playlist.m3u8`; // HLS Playlist
+    // On signe le fichier MP4 direct pour compatibilité maximale <video> standard sans hls.js
+    const path = `/${videoId}/play_720p.mp4`; 
     const toSign = securityKey + path + expires;
     const signature = crypto.createHash('sha256').update(toSign).digest('hex');
-    const baseUrl = "https://vz-c69f4e3f-963.b-cdn.net"; // Private Zone
+    
+    // URL de la Pull Zone PRIVÉE (Variable d'env ou Hardcodé si unique)
+    const baseUrl = process.env.BUNNY_PRIVATE_PULL_ZONE || "https://vz-c69f4e3f-963.b-cdn.net"; 
+    
     return `${baseUrl}${path}?token=${signature}&expires=${expires}`;
 }
 
