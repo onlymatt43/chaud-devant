@@ -1,5 +1,19 @@
 [
   {
+    "id": "clip-solo",
+    "captions": [
+      "fr",
+      "en"
+    ],
+    "formats_generated": [
+      "16x9"
+    ],
+    "bunny_urls": {
+      "16x9": "https://vz-c69f4e3f-963.b-cdn.net/ed880b46-f40e-495c-ae07-8715ca06babb/play_720p.mp4"
+    },
+    "updated_at": "2026-01-29T02:49:37.083937Z"
+  },
+  {
     "id": "solo",
     "captions": [
       "fr",
