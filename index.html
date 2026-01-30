@@ -154,13 +154,31 @@
             cursor: pointer;
             transition: opacity 0.8s ease;
         }
+        .landing-content {
+            text-align: center;
+        }
         .enter-text {
             border: 1px solid white;
             padding: 15px 30px;
-            font-size: 1.2rem;
+            font-size: 1.5rem;
             letter-spacing: 3px;
             text-transform: uppercase;
             animation: pulse 2s infinite;
+            margin-bottom: 20px;
+        }
+        .privacy-link {
+            font-size: 0.8rem;
+            color: #e0f2f1;
+            text-decoration: none;
+            opacity: 0.7;
+            display: block;
+            max-width: 400px;
+            margin: 0 auto;
+            line-height: 1.4;
+        }
+        .privacy-link:hover {
+            opacity: 1;
+            text-decoration: underline;
         }
         @keyframes pulse {
             0% { opacity: 0.5; }
@@ -173,7 +191,10 @@
 
 <!-- LANDING SCREEN TO FORCE INTERACTION -->
 <div id="landing-overlay" onclick="enterSite()">
-    <div class="enter-text">ENTRER</div>
+    <div class="landing-content">
+        <div class="enter-text">VIDÉOTHÈQUE ACCESS</div>
+        <a href="/privacy.html" class="privacy-link">CONTENU SENSIBLE PROTEGE PAR CODE. POUR AUDITOIRE MAJEUR SELON LA LOI DU PAYS. LE COOKIE SERA ACCEPTE D'EMBLEE.</a>
+    </div>
 </div>
 
 <!-- MODAL D'ACCÈS -->
