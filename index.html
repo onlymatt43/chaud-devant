@@ -41,21 +41,36 @@
             #feed { column-count: 1; }
         }
 
-        /* Carte vidéo - Juste le bloc image */
+        /* Carte vidéo */
         .video-card {
             background: transparent;
             border-radius: 0;
             overflow: hidden;
             box-shadow: none;
             position: relative;
-            margin-bottom: 20px; /* Espace vertical entre les éléments */
-            break-inside: avoid; /* Empêche de couper une vidéo entre deux colonnes */
-            transform: translateZ(0); /* Fix pour certains glitchs de rendu */
-            transition: opacity 0.3s ease;
+            margin-bottom: 20px;
+            break-inside: avoid;
+            transform: translateZ(0); 
+            transition: opacity 1.5s ease-out; /* Reveal lent et mystérieux */
         }
 
-        .video-card:hover {
-            opacity: 0.9;
+        /* PUBLIC VIDEOS: INVISIBLE BY DEFAULT (GHOST MODE) */
+        .video-card[data-locked="false"] {
+            opacity: 0;
+        }
+        
+        /* REVEAL ON HOVER (OR IF ALREADY REVEALED) */
+        .video-card[data-locked="false"]:hover,
+        .video-card[data-locked="false"].revealed {
+            opacity: 1;
+        }
+
+        /* Private videos always visible (slightly dimmed) */
+        .video-card[data-locked="true"] {
+            opacity: 0.7;
+        }
+        .video-card[data-locked="true"]:hover {
+            opacity: 1;
         }
 
         .video-container {
@@ -367,6 +382,11 @@
         
         // Mouse enter pour autoplay (Preview) + SOUND ON MOUSEOVER FOR PUBLIC
         card.addEventListener('mouseenter', () => {
+            // REVEAL GHOST VIDEOS PERMANENTLY ON FIRST HOVER
+            if (card.dataset.locked === "false") {
+                card.classList.add('revealed');
+            }
+
             // On joue la vidéo même verrouillée pour permettre l'effet "transparence"
             
             if(video.paused) {
