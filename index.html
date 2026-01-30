@@ -292,9 +292,16 @@
         const isLocked = videoInfo.locked === true; 
         card.dataset.locked = isLocked ? "true" : "false";
 
-        // --- LOGIQUE INTELLIGENTE (RESPONSIVE) ---
+        // --- LOGIQUE INTELLIGENTE (RESPONSIVE & RANDOM) ---
         const isMobile = window.innerHeight > window.innerWidth;
-        const formatPriority = isMobile ? ['9x16', '1x1', '16x9'] : ['16x9', '1x1', '9x16'];
+        
+        // MIX & MATCH: Si desktop, on randomize parfois le choix du format pour varier les hauteurs
+        let formatPriority = isMobile ? ['9x16', '1x1', '16x9'] : ['16x9', '1x1', '9x16'];
+        
+        // 1 chance sur 3 de privilégier le vertical sur desktop pour créer du rythme ("mouvement")
+        if (!isMobile && Math.random() > 0.6) {
+             formatPriority = ['9x16', '1x1', '16x9'];
+        }
         
         let targetFormat = null;
         let videoUrl = null;
@@ -358,19 +365,31 @@
              }
         });
         
-        // Mouse enter pour autoplay (Preview)
+        // Mouse enter pour autoplay (Preview) + SOUND ON MOUSEOVER FOR PUBLIC
         card.addEventListener('mouseenter', () => {
             // On joue la vidéo même verrouillée pour permettre l'effet "transparence"
             
             if(video.paused) {
-                video.muted = true;
+                // If PUBLIC (not locked), UNMUTE ON HOVER
+                if (card.dataset.locked === "false") {
+                    video.muted = false;
+                } else {
+                    video.muted = true;
+                }
+                
                 const playPromise = video.play();
                 if (playPromise !== undefined) playPromise.catch(() => {});
                 container.classList.remove('paused');
+            } else {
+                // If already playing via click or other, just ensure sound state
+                 if (card.dataset.locked === "false") video.muted = false;
             }
         });
 
         card.addEventListener('mouseleave', () => {
+             // Mute immediately on leave
+             video.muted = true;
+             
              if(!video.paused) {
                  video.pause();
                  container.classList.add('paused');
@@ -386,6 +405,9 @@
             const response = await fetch('/api/get-videos');
             videosData = await response.json();
             
+            // RANDOM SHUFFLE to mix Private & Public
+            videosData.sort(() => Math.random() - 0.5);
+
             videosData.forEach((vid, index) => { // Ajout index pour le ciblage test
                 const el = createSlide(vid, index);
                 if (el) feed.appendChild(el);
