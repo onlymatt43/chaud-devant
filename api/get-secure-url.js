@@ -1,66 +1,45 @@
 const crypto = require('crypto');
 const { authenticator } = require('otplib');
 
-// Defensive require for @libsql/client
-let createClient;
-try {
-    const libsql = require('@libsql/client');
-    createClient = libsql.createClient;
-    console.log("@libsql/client loaded successfully");
-} catch (e) {
-    console.warn("Optional dependency @libsql/client not found or failed to load:", e.message);
-}
-
 // CONFIGURATION
 const BUNNY_PRIVATE_KEY = process.env.BUNNY_TOKEN_KEY || process.env.BUNNY_ACCESS_KEY;
 const MASTER_TOTP_KEY = process.env.TOTP_SECRET_KEY || "JBSWY3DPEHPK3PXP"; 
 
-// CONNEXION TURSO (Optimisé pour Serverless HTTP)
+// 1. Initialisation Client DB (Safe mode: Web/HTTP only)
+// On utilise l'import 'web' pour éviter les crashs de modules natifs sur Vercel
 let db = null;
-
-function getDb() {
-    if (db) return db;
-    // Si createClient n'a pas pu être chargé, on abandonne l'initialisation DB
-    if (!createClient) {
-        console.warn("Skipping DB init because createClient is undefined");
-        return null;
-    }
-
+try {
+    const { createClient } = require('@libsql/client/web'); // <-- CHANGEMENT CLÉ ICI
+    
     if (process.env.TURSO_DB_URL && process.env.TURSO_DB_TOKEN) {
-        try {
-            const url = process.env.TURSO_DB_URL.replace('libsql://', 'https://');
-            console.log("Initializing Turso Client with URL:", url);
-            
-            db = createClient({
-                url: url,
-                authToken: process.env.TURSO_DB_TOKEN,
-            });
-        } catch (e) {
-            console.error("Failed to initialize Turso client:", e);
-        }
-    } else {
-        console.warn("Skipping DB init: Missing Environment Variables");
+        const url = process.env.TURSO_DB_URL.replace('libsql://', 'https://');
+        console.log("Initializing Turso Web Client with URL:", url);
+        
+        db = createClient({
+            url: url,
+            authToken: process.env.TURSO_DB_TOKEN,
+        });
     }
-    return db;
+} catch (error) {
+    console.warn("Could not load @libsql/client/web:", error.message);
 }
 
 async function getActiveSecrets() {
     const secrets = [];
     
-    // 1. Toujours ajouter la clé maître (fallback/admin)
+    // Toujours ajouter la clé maître
     if (MASTER_TOTP_KEY) secrets.push({ type: 'MASTER', secret: MASTER_TOTP_KEY });
 
-    // 2. Fetch depuis Turso si connecté
-    const client = getDb();
-    if (client) {
+    // Fetch DB
+    if (db) {
         try {
-            const result = await client.execute("SELECT totp_secret FROM users WHERE active = 1");
+            const result = await db.execute("SELECT totp_secret FROM users WHERE active = 1");
             result.rows.forEach(row => {
                 const secret = row.totp_secret; 
                 if(secret) secrets.push({ type: 'USER', secret: String(secret) });
             });
         } catch (e) {
-            console.warn("Erreur lecture DB Turso (Fallback sur Master Key uniquement):", e.message);
+            console.error("DB Read Error:", e.message);
         }
     }
     return secrets;
