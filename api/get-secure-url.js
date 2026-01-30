@@ -151,12 +151,26 @@ module.exports = async (req, res) => {
              return res.status(403).json({ error: 'Code invalide ou expiré' });
         }
 
-        if (!BUNNY_PRIVATE_KEY) {
-            console.error("Missing BUNNY_PRIVATE_KEY Env Var");
-            return res.status(500).json({ error: 'Server misconfigured: Missing Video Key' });
+        let signingKey = process.env.BUNNY_TOKEN_KEY;
+        let keySource = "BUNNY_TOKEN_KEY";
+
+        if (!signingKey) {
+            signingKey = process.env.BUNNY_ACCESS_KEY; 
+            keySource = "BUNNY_ACCESS_KEY (Fallback - Is this the Token Key or API Key?)";
+        }
+        
+        if (!signingKey) {
+            console.error("Missing Security Key (BUNNY_TOKEN_KEY)");
+            return res.status(500).json({ error: 'Server Config Error: Missing BUNNY_TOKEN_KEY' });
         }
 
-        const signedUrl = signBunnyUrl(videoId, BUNNY_PRIVATE_KEY);
+        // CLEAN THE KEY (Crucial! Remove spaces that copy-paste might add)
+        signingKey = signingKey.trim();
+
+        // LOGGING FOR DEBUG (Safe - only first 4 chars)
+        console.log(`Signing with [${keySource}]: ${signingKey.substring(0, 4)}... (Length: ${signingKey.length})`);
+
+        const signedUrl = signBunnyUrl(videoId, signingKey);
         console.log("URL signée générée avec succès");
 
         return res.status(200).json({ success: true, url: signedUrl });
