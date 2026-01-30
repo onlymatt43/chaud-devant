@@ -10,15 +10,28 @@ const MASTER_TOTP_KEY = process.env.TOTP_SECRET_KEY || "JBSWY3DPEHPK3PXP";
 
 // CONNEXION TURSO (Optimisé pour Serverless HTTP)
 let db = null;
-if (process.env.TURSO_DB_URL && process.env.TURSO_DB_TOKEN) {
-    // Force HTTP pour Vercel pour éviter les soucis de WebSocket
-    const url = process.env.TURSO_DB_URL.replace('libsql://', 'https://');
-    
-    db = createClient({
-        url: url,
-        authToken: process.env.TURSO_DB_TOKEN,
-        intMode: 'bigint' // Prévention erreur 400
-    });
+
+// Initialisation Lazy/Safe du client DB
+function getDb() {
+    if (db) return db;
+    if (process.env.TURSO_DB_URL && process.env.TURSO_DB_TOKEN) {
+        try {
+            // Force HTTP pour Vercel pour éviter les soucis de WebSocket
+            const url = process.env.TURSO_DB_URL.replace('libsql://', 'https://');
+            console.log("Initializing Turso Client with URL:", url);
+            
+            db = createClient({
+                url: url,
+                authToken: process.env.TURSO_DB_TOKEN,
+                // intMode: 'bigint' // On enlève ça temporairement au cas où ça cause des soucis de version Node
+            });
+        } catch (e) {
+            console.error("Failed to initialize Turso client:", e);
+        }
+    } else {
+        console.warn("Missing TURSO env vars");
+    }
+    return db;
 }
 
 // Fonction pour récupérer les secrets actifs depuis Turso
@@ -29,7 +42,8 @@ async function getActiveSecrets() {
     if (MASTER_TOTP_KEY) secrets.push({ type: 'MASTER', secret: MASTER_TOTP_KEY });
 
     // 2. Fetch depuis Turso si connecté
-    if (db) {
+    const client = getDb();
+    if (client) {
         try {
             // On suppose une table 'users' avec une colonne 'totp_secret'
             const result = await db.execute("SELECT totp_secret FROM users WHERE active = 1");
