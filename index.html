@@ -336,6 +336,7 @@
 
         // Récupère le GUID correspondant au format choisi (pour l'API de déverrouillage)
         const targetGuid = videoInfo.guids ? videoInfo.guids[targetFormat] : null;
+        const thumbnail = videoInfo.thumbnails ? videoInfo.thumbnails[targetFormat] : null;
 
         let lockHtml = '';
         if (isLocked) {
@@ -347,11 +348,12 @@
                 </div>
             `;
         }
-
+        
+        // Use poster attribute to show something even if video 403s
         card.innerHTML = `
             <div class="video-container paused">
                 ${lockHtml}
-                <video loop playsinline muted preload="auto">
+                <video loop playsinline muted preload="auto" poster="${thumbnail || ''}">
                     <source src="${videoUrl}#t=0.001" type="video/mp4">
                 </video>
             </div>
