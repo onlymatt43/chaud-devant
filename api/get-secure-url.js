@@ -75,17 +75,19 @@ module.exports = async (req, res) => {
         let authorized = false;
 
         // Create TOTP instance
-        const totp = new TOTP({ window: 1 }); // +/- 30s
+        const totp = new TOTP({ window: 1 }); 
         
         for (const entry of activeSecrets) {
             try {
-                if (totp.verify({ token: code, secret: entry.secret })) {
+                // FORCE ASYNC CHECK to prevent unhandled promise rejections
+                const isValid = await totp.verify({ token: code, secret: entry.secret });
+                if (isValid) {
                     authorized = true;
                     console.log(`Accès autorisé via clé ${entry.type}`);
-                    break; 
+                    break;
                 }
             } catch (err) {
-                 console.log(`Invalid secret ignored for ${entry.type}`);
+                 console.log(`Invalid secret ignored for ${entry.type}:`, err.message);
             }
         }
 
