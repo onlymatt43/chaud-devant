@@ -76,7 +76,7 @@ module.exports = async (req, res) => {
 
         let authorized = false;
 
-        // Config otplib
+        // Config otplib (On utilise l'instance importée directement)
         authenticator.options = { window: 1 }; // +/- 30s
         
         for (const entry of activeSecrets) {
