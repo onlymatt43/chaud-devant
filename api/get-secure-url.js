@@ -43,13 +43,13 @@ function base32ToBuffer(str) {
   return buf;
 }
 
-function verifyTOTP(token, secret, window = 1) {
+function verifyTOTP(token, secret, window = 2) {
     if (!token || !secret) return false;
     try {
         const secretBuf = base32ToBuffer(secret);
         const time = Math.floor(Date.now() / 1000 / 30);
         
-        // Window check: previous, current, next
+        // Window check (widened to +/- 1 minute)
         for (let i = -window; i <= window; i++) {
             const t = time + i;
             const counterBuf = Buffer.alloc(8);
@@ -122,8 +122,11 @@ module.exports = async (req, res) => {
     if (req.method !== 'POST') { return res.status(405).json({ error: 'Method not allowed' }); }
 
     try {
-        const { code, videoId } = req.body;
+        let { code, videoId } = req.body;
         if (!code || !videoId) return res.status(400).json({ error: 'Missing code or videoId' });
+        
+        // Clean input (remove spaces, trim)
+        code = String(code).replace(/\s+/g, '');
 
         const activeSecrets = await getActiveSecrets();
         console.log(`Vérification de ${activeSecrets.length} clés pour le code ${code}...`);
