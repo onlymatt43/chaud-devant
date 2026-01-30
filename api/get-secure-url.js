@@ -1,15 +1,14 @@
 const crypto = require('crypto');
-const { authenticator } = require('otplib');
+const { TOTP } = require('otplib'); // FIX: Use TOTP class
 
 // CONFIGURATION
 const BUNNY_PRIVATE_KEY = process.env.BUNNY_TOKEN_KEY || process.env.BUNNY_ACCESS_KEY;
 const MASTER_TOTP_KEY = process.env.TOTP_SECRET_KEY || "JBSWY3DPEHPK3PXP"; 
 
 // 1. Initialisation Client DB (Safe mode: Web/HTTP only)
-// On utilise l'import 'web' pour éviter les crashs de modules natifs sur Vercel
 let db = null;
 try {
-    const { createClient } = require('@libsql/client/web'); // <-- CHANGEMENT CLÉ ICI
+    const { createClient } = require('@libsql/client/web'); 
     
     if (process.env.TURSO_DB_URL && process.env.TURSO_DB_TOKEN) {
         const url = process.env.TURSO_DB_URL.replace('libsql://', 'https://');
@@ -70,24 +69,22 @@ module.exports = async (req, res) => {
         const { code, videoId } = req.body;
         if (!code || !videoId) return res.status(400).json({ error: 'Missing code or videoId' });
 
-        // Force reload secrets on each request (Serverless context)
         const activeSecrets = await getActiveSecrets();
         console.log(`Vérification de ${activeSecrets.length} clés pour le code ${code}...`);
 
         let authorized = false;
 
-        // Config otplib (On utilise l'instance importée directement)
-        authenticator.options = { window: 1 }; // +/- 30s
+        // Create TOTP instance
+        const totp = new TOTP({ window: 1 }); // +/- 30s
         
         for (const entry of activeSecrets) {
             try {
-                if (authenticator.check(code, entry.secret)) {
+                if (totp.verify({ token: code, secret: entry.secret })) {
                     authorized = true;
                     console.log(`Accès autorisé via clé ${entry.type}`);
                     break; 
                 }
             } catch (err) {
-                // Ignore invalid secrets
                  console.log(`Invalid secret ignored for ${entry.type}`);
             }
         }
@@ -97,7 +94,6 @@ module.exports = async (req, res) => {
              return res.status(403).json({ error: 'Code invalide ou expiré' });
         }
 
-        // 4. GENERATION DU PASS
         if (!BUNNY_PRIVATE_KEY) {
             console.error("Missing BUNNY_PRIVATE_KEY Env Var");
             return res.status(500).json({ error: 'Server misconfigured: Missing Video Key' });
