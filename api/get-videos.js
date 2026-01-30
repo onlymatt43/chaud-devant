@@ -1,3 +1,5 @@
+const crypto = require('crypto');
+
 // CONFIGURATION (à migrer dans Vercel ENV idéalement)
 const PUBLIC = {
   id: process.env.BUNNY_LIBRARY_ID || '581630',
@@ -33,6 +35,25 @@ async function fetchLibrary(config, isPrivate = false) {
     console.error(`Exception fetch library ${config.id}:`, e);
     return [];
   }
+}
+
+// Helper de signature (dupliqué de get-secure-url pour éviter les dépendances croisées)
+function signUrl(url, securityKey, expirationSeconds = 3600) {
+    if (!securityKey) return url;
+    try {
+        const expires = Math.floor(Date.now() / 1000) + expirationSeconds;
+        const urlObj = new URL(url);
+        const path = urlObj.pathname;
+        
+        const toSign = securityKey + path + expires;
+        const hash = crypto.createHash('sha256').update(toSign).digest('base64');
+        const signature = hash.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+        
+        return `${url}?token=${signature}&expires=${expires}`;
+    } catch(e) {
+        console.error("Signing Error inside get-videos:", e);
+        return url;
+    }
 }
 
 export default async function handler(req, res) {
@@ -76,7 +97,20 @@ export default async function handler(req, res) {
       const videoUrl = `${v._pull}/${v.guid}/play_720p.mp4`;
       projects[id].bunny_urls[format] = videoUrl;
       projects[id].guids[format] = v.guid;
-      projects[id].thumbnails[format] = `${v._pull}/${v.guid}/${v.thumbnailFileName || 'thumbnail.jpg'}`;
+
+      let thumbUrl = `${v._pull}/${v.guid}/${v.thumbnailFileName || 'thumbnail.jpg'}`;
+      
+      // SIGN THUMBNAILS FOR PRIVATE VIDEOS
+      if (v._isPrivate) {
+          // Use Token Key if available, else Access Key (old logic fallback)
+          const signingKey = process.env.BUNNY_TOKEN_KEY || process.env.BUNNY_PRIVATE_ACCESS_KEY;
+          // Clean key of spaces
+          const cleanKey = signingKey ? signingKey.trim() : null;
+          // Sign for 24h validity (thumbnails shouldn't expire too fast for caching)
+          thumbUrl = signUrl(thumbUrl, cleanKey, 86400);
+      }
+
+      projects[id].thumbnails[format] = thumbUrl;
 
       if (v._isPrivate) {
         projects[id].locked = true;
