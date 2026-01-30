@@ -1,5 +1,6 @@
 const crypto = require('crypto');
-const { TOTP } = require('otplib'); // FIX: Use TOTP class
+// We remove the otplib dependency completely to avoid versioning hell and crashes
+// const { TOTP } = require('otplib'); 
 
 // CONFIGURATION
 const BUNNY_PRIVATE_KEY = process.env.BUNNY_TOKEN_KEY || process.env.BUNNY_ACCESS_KEY;
@@ -22,6 +23,61 @@ try {
 } catch (error) {
     console.warn("Could not load @libsql/client/web:", error.message);
 }
+
+// ------ NATIVE TOTP IMPLEMENTATION (No Dependencies) ------
+function base32ToBuffer(str) {
+  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+  let binary = '';
+  // Remove padding if any
+  str = str.replace(/=+$/, '');
+  for (let i = 0; i < str.length; i++) {
+    const val = alphabet.indexOf(str[i].toUpperCase());
+    if (val === -1) continue;
+    binary += val.toString(2).padStart(5, '0');
+  }
+  const len = Math.floor(binary.length / 8);
+  const buf = Buffer.alloc(len);
+  for (let i = 0; i < len; i++) {
+    buf[i] = parseInt(binary.slice(i * 8, (i + 1) * 8), 2);
+  }
+  return buf;
+}
+
+function verifyTOTP(token, secret, window = 1) {
+    if (!token || !secret) return false;
+    try {
+        const secretBuf = base32ToBuffer(secret);
+        const time = Math.floor(Date.now() / 1000 / 30);
+        
+        // Window check: previous, current, next
+        for (let i = -window; i <= window; i++) {
+            const t = time + i;
+            const counterBuf = Buffer.alloc(8);
+            counterBuf.writeUInt32BE(0, 0); 
+            counterBuf.writeUInt32BE(t, 4);
+
+            const hmac = crypto.createHmac('sha1', secretBuf);
+            hmac.update(counterBuf);
+            const digest = hmac.digest();
+
+            const offset = digest[digest.length - 1] & 0xf;
+            const code = (
+                ((digest[offset] & 0x7f) << 24) |
+                ((digest[offset + 1] & 0xff) << 16) |
+                ((digest[offset + 2] & 0xff) << 8) |
+                (digest[offset + 3] & 0xff)
+            ) % 1000000;
+
+            const calculatedToken = code.toString().padStart(6, '0');
+            if (calculatedToken === token) return true;
+        }
+        return false;
+    } catch (e) {
+        console.error("Native TOTP Check Error:", e.message);
+        return false;
+    }
+}
+// -----------------------------------------------------------
 
 async function getActiveSecrets() {
     const secrets = [];
@@ -74,17 +130,13 @@ module.exports = async (req, res) => {
 
         let authorized = false;
 
-        // Create TOTP instance
-        const totp = new TOTP({ window: 1 }); 
-        
         for (const entry of activeSecrets) {
             try {
-                // FORCE ASYNC CHECK to prevent unhandled promise rejections
-                const isValid = await totp.verify({ token: code, secret: entry.secret });
-                if (isValid) {
+                // Use robust native check
+                if (verifyTOTP(code, entry.secret)) {
                     authorized = true;
                     console.log(`Accès autorisé via clé ${entry.type}`);
-                    break;
+                    break; 
                 }
             } catch (err) {
                  console.log(`Invalid secret ignored for ${entry.type}:`, err.message);
