@@ -269,19 +269,6 @@
         if (newUrl) {
             console.log("Loading signed URL:", newUrl);
             video.src = newUrl;
-            
-            // DIAGNOSTIC ERROR HANDLER
-            video.onerror = function() {
-                const err = video.error;
-                let msg = "Erreur inconnue";
-                if(err) {
-                    if (err.code === 4) msg = "Format non supporté ou 403 Forbidden (Signature Incorrecte)";
-                    if (err.code === 3) msg = "Erreur de décodage";
-                    if (err.code === 2) msg = "Erreur réseau (WIFI ou Blocage)";
-                }
-                alert("VIDEO LOAD ERROR: " + msg + "\nCode: " + (err ? err.code : 'N/A') + "\nURL: " + newUrl);
-            };
-
             video.load(); // Important pour recharger la source
         }
 
