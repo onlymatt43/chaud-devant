@@ -1,5 +1,14 @@
 [
   {
+    "id": "clip-solo",
+    "is_private": true,
+    "updated_at": "2026-01-30T14:21:06.923041Z",
+    "bunny_urls": {
+      "16x9": "https://vz-c69f4e3f-963.b-cdn.net/e5a802d2-4eef-4a30-b9c0-14d091fe3a4b/play_720p.mp4"
+    },
+    "pipeline_steps": []
+  },
+  {
     "id": "men-at-play",
     "is_private": true,
     "updated_at": "2026-01-29T04:21:35.864419Z",
