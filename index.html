@@ -3,7 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chaud Devant - Showcase</title>
+    <meta name="theme-color" content="#e0f2f1">
+    <meta name="description" content="Plateforme créative ONLYMATT - Vidéothèque Access">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎥</text></svg>">
+    <title>ONLYMATT - Vidéothèque Access</title>
     <style>
         :root {
             /* Fond sombre bleu-vert presque noir */
@@ -473,6 +477,15 @@
     codeInput.addEventListener('keypress', function (e) {
         if (e.key === 'Enter') verifyCode();
     });
+
+    // Register service worker for PWA
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/sw.js')
+                .then(registration => console.log('SW registered'))
+                .catch(error => console.log('SW registration failed'));
+        });
+    }
 
     init();
 
