@@ -1,7 +1,7 @@
 {
-  "name": "ONLYMATT",
-  "short_name": "ONLYMATT",
-  "description": "Plateforme créative ONLYMATT - Connecter créateurs et fans",
+  "name": "Chaud Devant - Showcase",
+  "short_name": "Chaud Devant",
+  "description": "Showcase de contenu multimédia exclusif",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#020b0e",
