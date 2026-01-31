@@ -1,7 +1,7 @@
 {
-  "name": "ONLYMATT - Vidéothèque Access",
+  "name": "ONLYMATT",
   "short_name": "ONLYMATT",
-  "description": "Plateforme créative pour contenu multimédia exclusif",
+  "description": "Plateforme créative ONLYMATT - Connecter créateurs et fans",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#020b0e",
